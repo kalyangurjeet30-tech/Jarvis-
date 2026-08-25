@@ -1,0 +1,6 @@
+{
+  "name": "JARVIS AI Assistant",
+  "description": "Iron Man inspired futuristic Stark HUD Jarvis AI Assistant with voice interaction, arc reactor animations, utilities, and holographic interface",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

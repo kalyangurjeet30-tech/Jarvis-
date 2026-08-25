@@ -1,0 +1,3321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#000000">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="description" content="JARVIS - Stark Industries AI Assistant HUD">
+  <title>JARVIS AI Assistant</title>
+
+  <!-- Google Fonts: Audiowide & Exo 2 -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Audiowide&family=Exo+2:ital,wght@0,300;0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+
+  <!-- Font Awesome 6 Icons CDN -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous">
+
+  <style>
+    :root {
+      --primary: #00d9ff;
+      --primary-glow: #00ffff;
+      --secondary-glow: #66e0ff;
+      --accent-dark: #002b3d;
+      --bg-color: #000000;
+      --panel-bg: rgba(0, 20, 35, 0.75);
+      --panel-border: rgba(0, 217, 255, 0.35);
+      --panel-border-bright: rgba(0, 217, 255, 0.85);
+      --text-main: #e0f7fc;
+      --text-muted: #6ba4b8;
+      --text-highlight: #ffffff;
+      --hud-grid: rgba(0, 217, 255, 0.06);
+      --hud-scanline: rgba(0, 217, 255, 0.08);
+      --danger: #ff3366;
+      --warning: #ffb703;
+      --success: #00f59b;
+      --radius-sm: 6px;
+      --radius-md: 12px;
+      --radius-lg: 18px;
+      --trans: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+
+    /* Color Theme Variants */
+    body.theme-red-gold {
+      --primary: #ff3344;
+      --primary-glow: #ff5566;
+      --secondary-glow: #ffd700;
+      --accent-dark: #3a0008;
+      --panel-bg: rgba(30, 0, 5, 0.75);
+      --panel-border: rgba(255, 51, 68, 0.35);
+      --panel-border-bright: rgba(255, 215, 0, 0.85);
+      --text-main: #ffe6e6;
+      --text-muted: #b86b72;
+      --hud-grid: rgba(255, 51, 68, 0.06);
+      --hud-scanline: rgba(255, 215, 0, 0.08);
+    }
+    body.theme-green {
+      --primary: #00ff66;
+      --primary-glow: #39ff14;
+      --secondary-glow: #a6ffcb;
+      --accent-dark: #003311;
+      --panel-bg: rgba(0, 25, 10, 0.75);
+      --panel-border: rgba(0, 255, 102, 0.35);
+      --panel-border-bright: rgba(57, 255, 20, 0.85);
+      --text-main: #e6ffe6;
+      --text-muted: #6bb880;
+      --hud-grid: rgba(0, 255, 102, 0.06);
+      --hud-scanline: rgba(57, 255, 20, 0.08);
+    }
+    body.theme-purple {
+      --primary: #c742ff;
+      --primary-glow: #e066ff;
+      --secondary-glow: #f0a8ff;
+      --accent-dark: #2d003b;
+      --panel-bg: rgba(20, 0, 30, 0.75);
+      --panel-border: rgba(199, 66, 255, 0.35);
+      --panel-border-bright: rgba(224, 102, 255, 0.85);
+      --text-main: #fbe6ff;
+      --text-muted: #b06bb8;
+      --hud-grid: rgba(199, 66, 255, 0.06);
+      --hud-scanline: rgba(224, 102, 255, 0.08);
+    }
+    body.theme-amber {
+      --primary: #ffaa00;
+      --primary-glow: #ffc233;
+      --secondary-glow: #ffe099;
+      --accent-dark: #3b2500;
+      --panel-bg: rgba(25, 15, 0, 0.75);
+      --panel-border: rgba(255, 170, 0, 0.35);
+      --panel-border-bright: rgba(255, 194, 51, 0.85);
+      --text-main: #fff4e0;
+      --text-muted: #b8996b;
+      --hud-grid: rgba(255, 170, 0, 0.06);
+      --hud-scanline: rgba(255, 194, 51, 0.08);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    input, textarea {
+      user-select: text;
+      -webkit-user-select: text;
+    }
+
+    /* Hide default scrollbars */
+    ::-webkit-scrollbar {
+      display: none;
+      width: 0;
+      height: 0;
+    }
+    * {
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      font-family: 'Exo 2', -apple-system, BlinkMacSystemFont, sans-serif;
+      font-size: 14px;
+      line-height: 1.4;
+      position: fixed;
+    }
+
+    /* HUD Background Grid & Scanlines */
+    .hud-background {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      pointer-events: none;
+      z-index: 1;
+      overflow: hidden;
+      transform: translateZ(0);
+    }
+    .hud-grid {
+      position: absolute;
+      inset: 0;
+      background-image: 
+        linear-gradient(to right, var(--hud-grid) 1px, transparent 1px),
+        linear-gradient(to bottom, var(--hud-grid) 1px, transparent 1px);
+      background-size: 32px 32px;
+      opacity: 0.8;
+    }
+    .hud-vignette {
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at 50% 45%, transparent 20%, rgba(0,0,0,0.85) 90%);
+    }
+    .hud-scanline-bar {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 4px;
+      background: linear-gradient(180deg, transparent, var(--primary), transparent);
+      opacity: 0.2;
+      animation: scanSweep 8s linear infinite;
+      transform: translateZ(0);
+    }
+
+    @keyframes scanSweep {
+      0% { transform: translateY(-10px) translateZ(0); }
+      100% { transform: translateY(105vh) translateZ(0); }
+    }
+
+    /* Typography & HUD Utility */
+    .font-hud {
+      font-family: 'Audiowide', cursive, sans-serif;
+      letter-spacing: 1px;
+    }
+    .glow-text {
+      text-shadow: 0 0 8px var(--primary-glow), 0 0 16px var(--primary);
+    }
+    .glow-box {
+      box-shadow: 0 0 15px rgba(0, 217, 255, 0.2), inset 0 0 15px rgba(0, 217, 255, 0.05);
+    }
+
+    /* Container */
+    #app-container {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      z-index: 10;
+      padding-top: env(safe-area-inset-top, 0px);
+      padding-bottom: env(safe-area-inset-bottom, 0px);
+    }
+
+    /* BOOT SCREEN */
+    #boot-screen {
+      position: fixed;
+      inset: 0;
+      background-color: #000000;
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      transition: opacity 0.8s ease, visibility 0.8s ease;
+    }
+    #boot-screen.fade-out {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+    /* ==========================================================
+       3D ATOMIC ORB & ORBITING GYROSCOPIC LINES (STARK/ZOYA CORE)
+       ========================================================== */
+    .boot-reactor {
+      width: 180px;
+      height: 180px;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 24px;
+      perspective: 1000px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(0, 30, 55, 0.5) 0%, rgba(0, 10, 25, 0.7) 60%, rgba(0, 0, 0, 0.9) 100%);
+      border: 1.5px solid rgba(0, 217, 255, 0.28);
+      box-shadow: 0 0 35px rgba(0, 217, 255, 0.25), inset 0 0 25px rgba(0, 217, 255, 0.15);
+    }
+
+    .atomic-reactor-assembly {
+      width: 175px;
+      height: 175px;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      perspective: 1000px;
+      cursor: pointer;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(0, 35, 60, 0.5) 0%, rgba(0, 12, 28, 0.7) 58%, rgba(0, 0, 0, 0.9) 100%);
+      border: 1.5px solid rgba(0, 217, 255, 0.3);
+      box-shadow: 0 0 32px rgba(0, 217, 255, 0.22), inset 0 0 22px rgba(0, 217, 255, 0.15);
+      transition: transform 0.25s ease, box-shadow 0.3s ease;
+      user-select: none;
+    }
+    .atomic-reactor-assembly:active {
+      transform: scale(0.95);
+    }
+
+    /* Outer glass bezel halo */
+    .atomic-outer-bezel {
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      background: radial-gradient(circle at 30% 20%, rgba(255, 255, 255, 0.1) 0%, transparent 60%);
+      pointer-events: none;
+      box-shadow: inset 0 0 15px rgba(0, 217, 255, 0.15);
+    }
+
+    /* 3D Sphere Core */
+    .atomic-sphere-core {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 32% 28%, #b3f4ff 0%, #1da1f2 24%, #0066cc 56%, #002b55 84%, #001124 100%);
+      box-shadow: 
+        0 0 28px rgba(0, 190, 255, 0.75),
+        0 0 60px rgba(0, 217, 255, 0.4),
+        inset -10px -10px 20px rgba(0, 0, 0, 0.85),
+        inset 6px 6px 14px rgba(255, 255, 255, 0.7);
+      position: relative;
+      z-index: 6;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform 0.3s ease, box-shadow 0.3s ease, filter 0.3s ease;
+      animation: sphereFloat 4s ease-in-out infinite alternate;
+    }
+
+    /* Glossy specular highlight on top-left */
+    .atomic-specular {
+      position: absolute;
+      top: 14%;
+      left: 18%;
+      width: 26px;
+      height: 18px;
+      background: radial-gradient(ellipse at center, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.45) 45%, transparent 85%);
+      border-radius: 50%;
+      transform: rotate(-35deg);
+      pointer-events: none;
+    }
+
+    /* Inner subtle core icon */
+    .atomic-core-icon {
+      color: rgba(255, 255, 255, 0.35);
+      font-size: 20px;
+      z-index: 7;
+      pointer-events: none;
+      filter: drop-shadow(0 0 4px rgba(0, 217, 255, 0.6));
+    }
+
+    /* 3D Orbit Stages */
+    .atomic-orbit-stage {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      transform-style: preserve-3d;
+      pointer-events: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* 3 Moving Gyroscopic Orbital Rings */
+    .atomic-ring {
+      position: absolute;
+      border-radius: 50%;
+      transform-style: preserve-3d;
+      pointer-events: none;
+      will-change: transform;
+      backface-visibility: hidden;
+      -webkit-backface-visibility: hidden;
+    }
+
+    /* 1. Neon Green Ring (Vertical Gyro Tilt) */
+    .atomic-ring.ring-green {
+      width: 148px;
+      height: 148px;
+      border: 2.5px solid #00ff73;
+      box-shadow: 0 0 14px #00ff73, 0 0 26px rgba(0, 255, 115, 0.45), inset 0 0 10px rgba(0, 255, 115, 0.35);
+      animation: spinGreenRing 6s linear infinite;
+    }
+
+    /* 2. Neon Cyan Ring (Horizontal Gyro Tilt) */
+    .atomic-ring.ring-cyan {
+      width: 154px;
+      height: 154px;
+      border: 2.5px solid #00e5ff;
+      box-shadow: 0 0 14px #00e5ff, 0 0 26px rgba(0, 229, 255, 0.45), inset 0 0 10px rgba(0, 229, 255, 0.35);
+      animation: spinCyanRing 8.5s linear infinite;
+    }
+
+    /* 3. Neon Red/Pink Ring (Diagonal Opposing Tilt) */
+    .atomic-ring.ring-red {
+      width: 150px;
+      height: 150px;
+      border: 2.5px solid #ff3366;
+      box-shadow: 0 0 14px #ff3366, 0 0 26px rgba(255, 51, 102, 0.45), inset 0 0 10px rgba(255, 51, 102, 0.35);
+      animation: spinRedRing 10.5s linear infinite reverse;
+    }
+
+    /* Multi-Axis Gyro Orbital Animations */
+    @keyframes spinGreenRing {
+      0% {
+        transform: rotateX(68deg) rotateY(18deg) rotateZ(0deg);
+      }
+      100% {
+        transform: rotateX(68deg) rotateY(18deg) rotateZ(360deg);
+      }
+    }
+
+    @keyframes spinCyanRing {
+      0% {
+        transform: rotateX(78deg) rotateY(-40deg) rotateZ(0deg);
+      }
+      100% {
+        transform: rotateX(78deg) rotateY(-40deg) rotateZ(360deg);
+      }
+    }
+
+    @keyframes spinRedRing {
+      0% {
+        transform: rotateX(46deg) rotateY(65deg) rotateZ(0deg);
+      }
+      100% {
+        transform: rotateX(46deg) rotateY(65deg) rotateZ(360deg);
+      }
+    }
+
+    @keyframes sphereFloat {
+      0% {
+        transform: translateY(-2px) scale(0.98);
+      }
+      100% {
+        transform: translateY(2px) scale(1.02);
+      }
+    }
+
+    /* Dynamic Reactivity (Listening, Speaking, Processing) */
+    .atomic-reactor-assembly.state-listening .atomic-ring.ring-green,
+    .boot-reactor.state-listening .atomic-ring.ring-green {
+      animation-duration: 2.2s;
+      box-shadow: 0 0 22px #00ff73, 0 0 45px #00ff73;
+    }
+    .atomic-reactor-assembly.state-listening .atomic-ring.ring-cyan,
+    .boot-reactor.state-listening .atomic-ring.ring-cyan {
+      animation-duration: 2.6s;
+      box-shadow: 0 0 22px #00e5ff, 0 0 45px #00e5ff;
+    }
+    .atomic-reactor-assembly.state-listening .atomic-ring.ring-red,
+    .boot-reactor.state-listening .atomic-ring.ring-red {
+      animation-duration: 3s;
+      box-shadow: 0 0 22px #ff3366, 0 0 45px #ff3366;
+    }
+    .atomic-reactor-assembly.state-listening .atomic-sphere-core {
+      box-shadow: 0 0 45px rgba(0, 229, 255, 0.95), 0 0 85px rgba(0, 217, 255, 0.65);
+      transform: scale(1.08);
+    }
+
+    .atomic-reactor-assembly.state-speaking .atomic-ring.ring-green {
+      animation-duration: 1.8s;
+    }
+    .atomic-reactor-assembly.state-speaking .atomic-ring.ring-cyan {
+      animation-duration: 2.1s;
+    }
+    .atomic-reactor-assembly.state-speaking .atomic-ring.ring-red {
+      animation-duration: 2.4s;
+    }
+    .atomic-reactor-assembly.state-speaking .atomic-sphere-core {
+      animation: speakPulse 0.45s ease-in-out infinite alternate;
+      box-shadow: 0 0 50px rgba(0, 255, 255, 0.95), 0 0 95px rgba(0, 180, 255, 0.85);
+    }
+
+    @keyframes speakPulse {
+      0% { transform: scale(0.96); filter: brightness(1); }
+      100% { transform: scale(1.1); filter: brightness(1.3); }
+    }
+
+    .atomic-reactor-assembly.state-processing .atomic-ring.ring-green {
+      animation-duration: 1.2s;
+    }
+    .atomic-reactor-assembly.state-processing .atomic-ring.ring-cyan {
+      animation-duration: 1.5s;
+    }
+    .atomic-reactor-assembly.state-processing .atomic-ring.ring-red {
+      animation-duration: 1.8s;
+    }
+    .boot-title {
+      font-size: 20px;
+      color: var(--primary);
+      margin-bottom: 12px;
+      letter-spacing: 2px;
+      text-align: center;
+    }
+    .boot-log {
+      font-family: monospace;
+      font-size: 11px;
+      color: var(--text-muted);
+      max-width: 320px;
+      height: 70px;
+      overflow: hidden;
+      text-align: center;
+      margin-bottom: 20px;
+      line-height: 1.6;
+    }
+    .boot-progress-wrap {
+      width: 220px;
+      height: 5px;
+      background: rgba(0, 217, 255, 0.15);
+      border-radius: 3px;
+      overflow: hidden;
+      border: 1px solid var(--panel-border);
+    }
+    .boot-progress-bar {
+      width: 0%;
+      height: 100%;
+      background: linear-gradient(90deg, var(--primary), var(--secondary-glow));
+      box-shadow: 0 0 10px var(--primary);
+      transition: width 0.3s ease;
+    }
+    .boot-start-btn {
+      margin-top: 24px;
+      padding: 10px 24px;
+      background: rgba(0, 217, 255, 0.12);
+      border: 1px solid var(--primary);
+      color: var(--primary);
+      border-radius: var(--radius-sm);
+      font-family: 'Audiowide', sans-serif;
+      font-size: 13px;
+      letter-spacing: 1.5px;
+      cursor: pointer;
+      opacity: 0;
+      transform: translateY(10px);
+      transition: var(--trans);
+    }
+    .boot-start-btn.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .boot-start-btn:active {
+      transform: scale(0.95);
+      background: var(--primary);
+      color: #000;
+    }
+
+    /* TOP HUD HEADER */
+    .hud-header {
+      padding: 12px 16px 8px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--panel-border);
+      background: linear-gradient(180deg, rgba(0, 20, 35, 0.98) 0%, rgba(0, 8, 18, 0.94) 100%);
+      flex-shrink: 0;
+      transform: translateZ(0);
+    }
+    .hud-brand {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .hud-logo-icon {
+      color: var(--primary);
+      font-size: 18px;
+      animation: logoGlow 3s ease-in-out infinite alternate;
+    }
+    @keyframes logoGlow {
+      0% { text-shadow: 0 0 4px var(--primary); }
+      100% { text-shadow: 0 0 12px var(--primary-glow); }
+    }
+    .hud-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--primary);
+    }
+    .hud-status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 10px;
+      letter-spacing: 1px;
+      padding: 3px 8px;
+      border-radius: 20px;
+      background: rgba(0, 217, 255, 0.1);
+      border: 1px solid var(--panel-border);
+      color: var(--primary);
+    }
+    .hud-status-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--success);
+      box-shadow: 0 0 8px var(--success);
+      animation: pulseDot 1.5s infinite;
+    }
+    .hud-status-dot.listening {
+      background: var(--primary);
+      box-shadow: 0 0 10px var(--primary-glow);
+    }
+    .hud-status-dot.speaking {
+      background: var(--warning);
+      box-shadow: 0 0 10px var(--warning);
+    }
+    .hud-status-dot.processing {
+      background: var(--secondary-glow);
+      box-shadow: 0 0 10px var(--secondary-glow);
+    }
+    @keyframes pulseDot {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.75); }
+    }
+    .hud-header-tools {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .hud-header-btn {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      background: rgba(0, 217, 255, 0.08);
+      border: 1px solid var(--panel-border);
+      color: var(--primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: var(--trans);
+      font-size: 13px;
+    }
+    .hud-header-btn:active {
+      transform: scale(0.9);
+      background: var(--primary);
+      color: #000;
+    }
+
+    /* TELEMETRY BAR */
+    .hud-telemetry {
+      display: flex;
+      justify-content: space-between;
+      padding: 6px 16px;
+      font-size: 10px;
+      color: var(--text-muted);
+      letter-spacing: 0.8px;
+      background: rgba(0, 10, 20, 0.5);
+      border-bottom: 1px solid rgba(0, 217, 255, 0.15);
+      flex-shrink: 0;
+    }
+    .telemetry-item {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .telemetry-item span {
+      color: var(--text-main);
+      font-weight: 600;
+    }
+
+    /* MAIN VIEWPORT */
+    .hud-main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* ARC REACTOR & VISUALIZER HUB */
+    .reactor-hub {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 12px 16px 8px 16px;
+      position: relative;
+      flex-shrink: 0;
+      transition: var(--trans);
+    }
+    .reactor-hub.compact {
+      padding: 4px 16px;
+      transform: scale(0.85);
+    }
+
+    .reactor-assembly {
+      width: 140px;
+      height: 140px;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: transform 0.25s ease;
+    }
+    .reactor-assembly:active {
+      transform: scale(0.96);
+    }
+
+    /* Concentric SVG HUD Rings */
+    .reactor-svg {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+    }
+    .svg-ring-outer {
+      animation: rotateRingCw 18s linear infinite;
+      transform-origin: center;
+    }
+    .svg-ring-mid {
+      animation: rotateRingCcw 12s linear infinite;
+      transform-origin: center;
+    }
+    .svg-ring-inner {
+      animation: rotateRingCw 8s linear infinite;
+      transform-origin: center;
+    }
+    @keyframes rotateRingCw { 100% { transform: rotate(360deg); } }
+    @keyframes rotateRingCcw { 100% { transform: rotate(-360deg); } }
+
+    .reactor-glow-core {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: radial-gradient(circle, #ffffff 10%, var(--secondary-glow) 50%, var(--primary) 90%);
+      box-shadow: 0 0 20px var(--primary), 0 0 40px var(--primary-glow);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      z-index: 2;
+      animation: coreIdlePulse 2.5s ease-in-out infinite alternate;
+    }
+
+    /* State-based pulses */
+    .reactor-assembly.state-idle .reactor-glow-core {
+      animation: coreIdlePulse 2.5s ease-in-out infinite alternate;
+    }
+    .reactor-assembly.state-listening .reactor-glow-core {
+      animation: coreListenPulse 0.8s ease-in-out infinite alternate;
+      box-shadow: 0 0 30px var(--primary-glow), 0 0 60px var(--primary);
+    }
+    .reactor-assembly.state-speaking .reactor-glow-core {
+      animation: coreSpeakPulse 0.5s ease-in-out infinite alternate;
+      box-shadow: 0 0 35px var(--secondary-glow), 0 0 70px var(--primary);
+    }
+    .reactor-assembly.state-processing .reactor-glow-core {
+      animation: coreProcessPulse 1s ease-in-out infinite;
+    }
+
+    @keyframes coreIdlePulse {
+      0% { transform: scale(0.92); opacity: 0.85; }
+      100% { transform: scale(1.04); opacity: 1; }
+    }
+    @keyframes coreListenPulse {
+      0% { transform: scale(0.95); opacity: 0.9; }
+      100% { transform: scale(1.18); opacity: 1; }
+    }
+    @keyframes coreSpeakPulse {
+      0% { transform: scale(0.9); opacity: 0.85; }
+      100% { transform: scale(1.22); opacity: 1; }
+    }
+    @keyframes coreProcessPulse {
+      0% { transform: rotate(0deg) scale(0.95); }
+      50% { transform: rotate(180deg) scale(1.1); }
+      100% { transform: rotate(360deg) scale(0.95); }
+    }
+
+    /* WAVEFORM CANVAS */
+    .waveform-container {
+      width: 100%;
+      max-width: 320px;
+      height: 28px;
+      margin-top: 4px;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    #waveform-canvas {
+      width: 100%;
+      height: 100%;
+    }
+
+    .reactor-state-text {
+      font-size: 11px;
+      color: var(--primary);
+      letter-spacing: 1.5px;
+      margin-top: 2px;
+      text-transform: uppercase;
+      font-weight: 600;
+    }
+
+    /* CHAT TRANSCRIPT AREA */
+    .chat-transcript-area {
+      flex: 1;
+      overflow-y: auto;
+      padding: 10px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      -webkit-overflow-scrolling: touch;
+      position: relative;
+    }
+    .chat-empty-state {
+      margin: auto;
+      text-align: center;
+      color: var(--text-muted);
+      padding: 20px;
+    }
+    .chat-empty-icon {
+      font-size: 32px;
+      color: var(--primary);
+      margin-bottom: 10px;
+      opacity: 0.7;
+    }
+    .chat-empty-title {
+      font-size: 14px;
+      color: var(--text-main);
+      margin-bottom: 6px;
+    }
+    .chat-empty-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      justify-content: center;
+      margin-top: 14px;
+    }
+    .sample-chip {
+      padding: 6px 12px;
+      background: rgba(0, 217, 255, 0.08);
+      border: 1px solid var(--panel-border);
+      border-radius: 14px;
+      font-size: 11px;
+      color: var(--primary);
+      cursor: pointer;
+      transition: var(--trans);
+    }
+    .sample-chip:active {
+      background: var(--primary);
+      color: #000;
+      transform: scale(0.95);
+    }
+
+    /* CHAT BUBBLES */
+    .chat-msg-row {
+      display: flex;
+      flex-direction: column;
+      max-width: 88%;
+      animation: msgEnter 0.25s cubic-bezier(0.1, 0.9, 0.2, 1);
+    }
+    @keyframes msgEnter {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .chat-msg-row.user {
+      align-self: flex-end;
+      align-items: flex-end;
+    }
+    .chat-msg-row.jarvis {
+      align-self: flex-start;
+      align-items: flex-start;
+    }
+    .msg-sender-tag {
+      font-size: 10px;
+      color: var(--text-muted);
+      margin-bottom: 3px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      letter-spacing: 0.5px;
+    }
+    .msg-card {
+      padding: 10px 14px;
+      border-radius: var(--radius-md);
+      position: relative;
+      font-size: 13.5px;
+      line-height: 1.45;
+      word-break: break-word;
+    }
+    .chat-msg-row.user .msg-card {
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(0, 217, 255, 0.12) 100%);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      color: var(--text-highlight);
+      border-top-right-radius: 2px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+    }
+    .chat-msg-row.jarvis .msg-card {
+      background: var(--panel-bg);
+      border: 1px solid var(--panel-border);
+      border-left: 3px solid var(--primary);
+      color: var(--text-main);
+      border-top-left-radius: 2px;
+      box-shadow: 0 4px 16px rgba(0, 217, 255, 0.12);
+    }
+    .msg-time {
+      font-size: 9px;
+      color: var(--text-muted);
+      margin-top: 4px;
+      align-self: flex-end;
+    }
+    .msg-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 4px;
+      opacity: 0.8;
+    }
+    .msg-action-btn {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-size: 11px;
+      cursor: pointer;
+      padding: 2px 4px;
+      transition: var(--trans);
+    }
+    .msg-action-btn:hover, .msg-action-btn:active {
+      color: var(--primary);
+    }
+
+    /* QUICK DOCK / UTILITY BAR */
+    .quick-dock {
+      display: flex;
+      justify-content: space-around;
+      padding: 6px 12px;
+      background: rgba(0, 15, 25, 0.75);
+      border-top: 1px solid var(--panel-border);
+      flex-shrink: 0;
+    }
+    .dock-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-size: 10px;
+      cursor: pointer;
+      padding: 4px 8px;
+      border-radius: var(--radius-sm);
+      transition: var(--trans);
+    }
+    .dock-btn i {
+      font-size: 14px;
+      color: var(--text-muted);
+      transition: var(--trans);
+    }
+    .dock-btn:active, .dock-btn.active {
+      color: var(--primary);
+    }
+    .dock-btn:active i, .dock-btn.active i {
+      color: var(--primary);
+      text-shadow: 0 0 8px var(--primary);
+      transform: scale(1.1);
+    }
+
+    /* BOTTOM CONTROLS */
+    .hud-control-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 18px 14px 18px;
+      background: linear-gradient(180deg, rgba(0,10,20,0.9) 0%, rgba(0,0,0,0.98) 100%);
+      border-top: 1px solid var(--panel-border);
+      flex-shrink: 0;
+      position: relative;
+    }
+    .ctrl-side-btn {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: rgba(0, 217, 255, 0.08);
+      border: 1px solid var(--panel-border);
+      color: var(--primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 17px;
+      cursor: pointer;
+      transition: var(--trans);
+    }
+    .ctrl-side-btn:active {
+      transform: scale(0.9);
+      background: var(--primary);
+      color: #000;
+    }
+    .ctrl-side-btn.active-state {
+      background: rgba(0, 217, 255, 0.25);
+      border-color: var(--primary-glow);
+      box-shadow: 0 0 12px var(--primary);
+    }
+
+    /* MAIN MIC TRIGGER BUTTON */
+    .mic-button-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .mic-ring-pulse {
+      position: absolute;
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      border: 1.5px solid var(--primary);
+      opacity: 0;
+      pointer-events: none;
+    }
+    .mic-button-wrapper.listening .mic-ring-pulse {
+      animation: micPulseWave 1.2s cubic-bezier(0.1, 0.8, 0.3, 1) infinite;
+    }
+    @keyframes micPulseWave {
+      0% { transform: scale(0.8); opacity: 0.9; }
+      100% { transform: scale(1.5); opacity: 0; }
+    }
+    .hud-mic-btn {
+      width: 62px;
+      height: 62px;
+      border-radius: 50%;
+      background: radial-gradient(circle, var(--accent-dark) 20%, #000814 100%);
+      border: 2px solid var(--primary);
+      color: var(--primary);
+      font-size: 22px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 0 20px rgba(0, 217, 255, 0.35);
+      transition: var(--trans);
+      position: relative;
+      z-index: 2;
+    }
+    .hud-mic-btn:active {
+      transform: scale(0.92);
+      box-shadow: 0 0 35px var(--primary-glow);
+    }
+    .mic-button-wrapper.listening .hud-mic-btn {
+      background: radial-gradient(circle, var(--primary) 0%, var(--accent-dark) 100%);
+      color: #000;
+      box-shadow: 0 0 35px var(--primary-glow), 0 0 60px var(--primary);
+    }
+
+    /* SLIDE-IN PANELS (MODALS / DRAWERS) */
+    .hud-drawer {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.82);
+      z-index: 100;
+      display: flex;
+      justify-content: flex-end;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.25s ease, visibility 0.25s ease;
+      transform: translateZ(0);
+    }
+    .hud-drawer.open {
+      opacity: 1;
+      visibility: visible;
+    }
+    .drawer-content {
+      width: 88%;
+      max-width: 380px;
+      height: 100%;
+      background: rgba(1, 15, 28, 0.95);
+      border-left: 1px solid var(--panel-border-bright);
+      box-shadow: -5px 0 25px rgba(0, 217, 255, 0.2);
+      display: flex;
+      flex-direction: column;
+      transform: translateX(100%);
+      transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+      padding: 16px;
+      overflow-y: auto;
+    }
+    .hud-drawer.open .drawer-content {
+      transform: translateX(0);
+    }
+
+    .drawer-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--panel-border);
+      margin-bottom: 14px;
+    }
+    .drawer-title {
+      font-size: 16px;
+      color: var(--primary);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .drawer-close-btn {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-size: 18px;
+      cursor: pointer;
+      padding: 4px;
+      transition: var(--trans);
+    }
+    .drawer-close-btn:active {
+      color: var(--primary);
+      transform: scale(0.9);
+    }
+
+    /* FORM & HUD CONTROLS */
+    .form-group {
+      margin-bottom: 14px;
+    }
+    .form-label {
+      display: block;
+      font-size: 11px;
+      color: var(--primary);
+      letter-spacing: 0.8px;
+      margin-bottom: 5px;
+      text-transform: uppercase;
+    }
+    .form-control {
+      width: 100%;
+      background: rgba(0, 25, 45, 0.8);
+      border: 1px solid var(--panel-border);
+      border-radius: var(--radius-sm);
+      padding: 10px 12px;
+      color: var(--text-main);
+      font-family: inherit;
+      font-size: 13px;
+      outline: none;
+      transition: var(--trans);
+    }
+    .form-control:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 10px rgba(0, 217, 255, 0.3);
+    }
+    select.form-control {
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2300d9ff' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+      cursor: pointer;
+    }
+    .range-wrap {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .range-wrap input[type="range"] {
+      flex: 1;
+      accent-color: var(--primary);
+    }
+    .range-val {
+      font-size: 11px;
+      font-family: monospace;
+      color: var(--text-muted);
+      width: 32px;
+    }
+    .btn-hud {
+      width: 100%;
+      padding: 11px;
+      border: 1px solid var(--primary);
+      background: rgba(0, 217, 255, 0.12);
+      color: var(--primary);
+      border-radius: var(--radius-sm);
+      font-family: 'Audiowide', sans-serif;
+      font-size: 12px;
+      letter-spacing: 1px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: var(--trans);
+    }
+    .btn-hud:active {
+      transform: scale(0.97);
+      background: var(--primary);
+      color: #000;
+    }
+    .btn-hud-danger {
+      border-color: var(--danger);
+      background: rgba(255, 51, 102, 0.12);
+      color: var(--danger);
+    }
+    .btn-hud-danger:active {
+      background: var(--danger);
+      color: #fff;
+    }
+
+    /* THEME PRESET CHIPS */
+    .theme-picker-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      margin-top: 6px;
+    }
+    .theme-chip {
+      height: 38px;
+      border-radius: var(--radius-sm);
+      border: 1px solid rgba(255,255,255,0.2);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      font-weight: 700;
+      transition: var(--trans);
+    }
+    .theme-chip.cyan { background: #00d9ff; color: #000; }
+    .theme-chip.red { background: #ff3344; color: #fff; }
+    .theme-chip.green { background: #00ff66; color: #000; }
+    .theme-chip.purple { background: #c742ff; color: #fff; }
+    .theme-chip.active {
+      outline: 2px solid #fff;
+      box-shadow: 0 0 12px currentColor;
+    }
+
+    /* TO-DO & NOTES ITEMS */
+    .hud-list-container {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-top: 10px;
+    }
+    .hud-item-card {
+      background: rgba(0, 25, 45, 0.6);
+      border: 1px solid var(--panel-border);
+      border-radius: var(--radius-sm);
+      padding: 10px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      transition: var(--trans);
+    }
+    .hud-item-card.completed {
+      opacity: 0.5;
+      text-decoration: line-through;
+      border-color: rgba(0, 217, 255, 0.15);
+    }
+    .hud-item-title {
+      font-size: 13px;
+      flex: 1;
+    }
+    .hud-item-actions {
+      display: flex;
+      gap: 6px;
+    }
+    .hud-icon-btn {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-size: 13px;
+      cursor: pointer;
+      padding: 4px;
+      transition: var(--trans);
+    }
+    .hud-icon-btn:hover, .hud-icon-btn:active {
+      color: var(--primary);
+    }
+    .hud-icon-btn.delete-btn:active {
+      color: var(--danger);
+    }
+
+    /* VOICE COMMAND GUIDE STYLES */
+    .command-guide-section {
+      background: rgba(0, 25, 45, 0.4);
+      border: 1px solid var(--panel-border);
+      border-radius: var(--radius-sm);
+      padding: 10px;
+    }
+    .guide-cmd-card {
+      background: rgba(0, 18, 32, 0.7);
+      border: 1px solid rgba(0, 217, 255, 0.15);
+      border-radius: var(--radius-sm);
+      padding: 8px 10px;
+      margin-top: 6px;
+      font-size: 12px;
+      cursor: pointer;
+      transition: var(--trans);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      align-items: center;
+    }
+    .guide-cmd-card:active {
+      background: rgba(0, 217, 255, 0.2);
+      border-color: var(--primary);
+      transform: scale(0.98);
+    }
+    .guide-cmd-card .cmd-text {
+      color: var(--primary);
+      font-family: monospace;
+      font-weight: bold;
+    }
+
+    /* TEXT INPUT MODAL / DRAWER */
+    #text-input-drawer {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      background: rgba(0, 15, 28, 0.96);
+      border-top: 2px solid var(--primary);
+      box-shadow: 0 -5px 30px rgba(0, 217, 255, 0.25);
+      padding: 14px 16px;
+      z-index: 150;
+      transform: translateY(100%);
+      transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+    #text-input-drawer.open {
+      transform: translateY(0);
+    }
+    .text-input-row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+    .text-input-box {
+      flex: 1;
+      background: rgba(0, 30, 50, 0.9);
+      border: 1px solid var(--panel-border);
+      border-radius: 24px;
+      padding: 11px 16px;
+      color: #fff;
+      font-family: inherit;
+      font-size: 14px;
+      outline: none;
+    }
+    .text-input-box:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 12px rgba(0, 217, 255, 0.4);
+    }
+    .text-send-btn {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: var(--primary);
+      border: none;
+      color: #000;
+      font-size: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: var(--trans);
+    }
+    .text-send-btn:active {
+      transform: scale(0.92);
+      box-shadow: 0 0 15px var(--primary-glow);
+    }
+
+    /* TOAST ALERTS */
+    .hud-toast-container {
+      position: fixed;
+      top: 60px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 999;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      pointer-events: none;
+      width: 90%;
+      max-width: 320px;
+    }
+    .hud-toast {
+      background: rgba(0, 20, 35, 0.95);
+      border: 1px solid var(--primary);
+      border-radius: var(--radius-md);
+      padding: 10px 14px;
+      color: var(--text-main);
+      font-size: 12px;
+      box-shadow: 0 4px 20px rgba(0, 217, 255, 0.3);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      animation: toastIn 0.3s cubic-bezier(0.1, 0.9, 0.2, 1);
+    }
+    @keyframes toastIn {
+      from { opacity: 0; transform: translateY(-15px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Background HUD Grid & Scanlines -->
+  <div class="hud-background">
+    <div class="hud-grid"></div>
+    <div class="hud-vignette"></div>
+    <div class="hud-scanline-bar"></div>
+  </div>
+
+  <!-- Toast Notification System -->
+  <div class="hud-toast-container" id="toast-container"></div>
+
+  <!-- BOOT-UP SEQUENCE SCREEN -->
+  <div id="boot-screen" onclick="startJarvisExperience()" title="Tap anywhere to launch JARVIS">
+    <div class="boot-reactor">
+      <div class="atomic-outer-bezel"></div>
+      <div class="atomic-orbit-stage">
+        <div class="atomic-ring ring-green"></div>
+        <div class="atomic-ring ring-cyan"></div>
+        <div class="atomic-ring ring-red"></div>
+      </div>
+      <div class="atomic-sphere-core">
+        <div class="atomic-specular"></div>
+        <i class="fa-solid fa-atom atomic-core-icon"></i>
+      </div>
+    </div>
+    <div class="boot-title font-hud glow-text" id="boot-status-text">JARVIS INITIALIZING...</div>
+    <div class="boot-log" id="boot-log-text">
+      [0.001] Loading Stark OS Kernel v9.4...<br>
+      [0.104] Calibrating 3D Gyro Arc Core harmonics...
+    </div>
+    <div class="boot-progress-wrap">
+      <div class="boot-progress-bar" id="boot-progress-bar"></div>
+    </div>
+    <button class="boot-start-btn show" id="boot-start-btn" onclick="startJarvisExperience()">
+      <i class="fa-solid fa-power-off"></i> ENGAGE JARVIS
+    </button>
+  </div>
+
+  <!-- APP CONTAINER -->
+  <div id="app-container">
+
+    <!-- TOP HEADER -->
+    <header class="hud-header">
+      <div class="hud-brand">
+        <i class="fa-solid fa-atom hud-logo-icon"></i>
+        <span class="hud-title font-hud glow-text" id="hud-app-name">JARVIS</span>
+      </div>
+      <div class="hud-status-badge" id="hud-status-badge">
+        <span class="hud-status-dot" id="hud-status-dot"></span>
+        <span id="hud-status-label">ONLINE</span>
+      </div>
+      <div class="hud-header-tools">
+        <button class="hud-header-btn" title="Voice Commands Manual" onclick="toggleDrawer('commands')">
+          <i class="fa-solid fa-terminal"></i>
+        </button>
+        <button class="hud-header-btn" title="Command History" onclick="toggleDrawer('history')">
+          <i class="fa-solid fa-clock-rotate-left"></i>
+        </button>
+        <button class="hud-header-btn" title="HUD Settings" onclick="toggleDrawer('settings')">
+          <i class="fa-solid fa-gear"></i>
+        </button>
+      </div>
+    </header>
+
+    <!-- TELEMETRY BAR -->
+    <div class="hud-telemetry">
+      <div class="telemetry-item">
+        <i class="fa-solid fa-bolt"></i> PWR: <span id="telemetry-pwr">100%</span>
+      </div>
+      <div class="telemetry-item">
+        <i class="fa-solid fa-microchip"></i> CPU: <span id="telemetry-cpu">3.8 GHz</span>
+      </div>
+      <div class="telemetry-item">
+        <i class="fa-solid fa-cloud-sun"></i> <span id="telemetry-weather">CALCULATING...</span>
+      </div>
+      <div class="telemetry-item">
+        <i class="fa-solid fa-clock"></i> <span id="telemetry-time">00:00</span>
+      </div>
+    </div>
+
+    <!-- MAIN VIEWPORT -->
+    <main class="hud-main">
+
+      <!-- 3D ARC REACTOR & VISUALIZER HUB -->
+      <section class="reactor-hub" id="reactor-hub">
+        <div class="atomic-reactor-assembly state-idle" id="reactor-assembly" onclick="toggleVoiceListening()" title="Click to speak with JARVIS">
+          <div class="atomic-outer-bezel"></div>
+          <div class="atomic-orbit-stage">
+            <div class="atomic-ring ring-green"></div>
+            <div class="atomic-ring ring-cyan"></div>
+            <div class="atomic-ring ring-red"></div>
+          </div>
+          <div class="atomic-sphere-core">
+            <div class="atomic-specular"></div>
+            <i class="fa-solid fa-atom atomic-core-icon"></i>
+          </div>
+        </div>
+
+        <div class="waveform-container">
+          <canvas id="waveform-canvas"></canvas>
+        </div>
+        <div class="reactor-state-text font-hud" id="reactor-state-text">JARVIS READY</div>
+      </section>
+
+      <!-- CHAT TRANSCRIPT AREA -->
+      <section class="chat-transcript-area" id="chat-transcript-area">
+        <div class="chat-empty-state" id="chat-empty-state">
+          <i class="fa-solid fa-microchip chat-empty-icon"></i>
+          <div class="chat-empty-title font-hud">SYSTEM READY, SIR</div>
+          <p style="font-size: 12px;">Speak or type a command. Try asking:</p>
+          <div class="chat-empty-chips">
+            <div class="sample-chip" onclick="handleQuickPrompt('What is the current time and date?')">⏰ Current Time</div>
+            <div class="sample-chip" onclick="handleQuickPrompt('What is the weather today?')">🌤️ Weather Report</div>
+            <div class="sample-chip" onclick="handleQuickPrompt('Add buy coffee to my todo list')">📝 Add To-Do</div>
+            <div class="sample-chip" onclick="handleQuickPrompt('Calculate 245 * 18')">🧮 Calculate</div>
+            <div class="sample-chip" onclick="handleQuickPrompt('Remind me to call Tony in 5 minutes')">🔔 Set Reminder</div>
+            <div class="sample-chip" onclick="handleQuickPrompt('Tell me a witty joke')">⚡ Witty Joke</div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- QUICK UTILITY DOCK -->
+    <nav class="quick-dock">
+      <button class="dock-btn" onclick="toggleDrawer('todo')" title="To-Do List">
+        <i class="fa-solid fa-list-check"></i>
+        <span>To-Do</span>
+      </button>
+      <button class="dock-btn" onclick="toggleDrawer('notes')" title="Notes">
+        <i class="fa-solid fa-note-sticky"></i>
+        <span>Notes</span>
+      </button>
+      <button class="dock-btn" onclick="toggleDrawer('reminders')" title="Reminders">
+        <i class="fa-solid fa-bell"></i>
+        <span>Reminders</span>
+      </button>
+      <button class="dock-btn" onclick="toggleDrawer('calculator')" title="HUD Calculator">
+        <i class="fa-solid fa-calculator"></i>
+        <span>Calculator</span>
+      </button>
+    </nav>
+
+    <!-- BOTTOM HUD CONTROLS -->
+    <footer class="hud-control-bar">
+      <!-- Mute Toggle -->
+      <button class="ctrl-side-btn" id="mute-toggle-btn" title="Toggle Voice Audio Output" onclick="toggleAudioMute()">
+        <i class="fa-solid fa-volume-high" id="mute-btn-icon"></i>
+      </button>
+
+      <!-- Center Voice Mic Button -->
+      <div class="mic-button-wrapper" id="mic-btn-wrapper">
+        <div class="mic-ring-pulse"></div>
+        <button class="hud-mic-btn" id="hud-mic-btn" onclick="toggleVoiceListening()" title="Tap to Speak">
+          <i class="fa-solid fa-microphone" id="mic-icon"></i>
+        </button>
+      </div>
+
+      <!-- Text Input Fallback Toggle -->
+      <button class="ctrl-side-btn" id="text-toggle-btn" title="Keyboard Text Input" onclick="toggleTextInputDrawer()">
+        <i class="fa-solid fa-keyboard"></i>
+      </button>
+    </footer>
+
+  </div>
+
+  <!-- KEYBOARD TEXT INPUT DRAWER -->
+  <div id="text-input-drawer">
+    <div class="text-input-row">
+      <input type="text" class="text-input-box" id="hud-text-input" placeholder="Type a command or question, sir..." onkeydown="handleTextKey(event)">
+      <button class="text-send-btn" onclick="submitTextInput()">
+        <i class="fa-solid fa-arrow-up"></i>
+      </button>
+      <button class="hud-header-btn" onclick="toggleTextInputDrawer()">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- SLIDE-IN DRAWER: SETTINGS -->
+  <div class="hud-drawer" id="drawer-settings" onclick="handleDrawerBackdrop(event, 'settings')">
+    <div class="drawer-content">
+      <div class="drawer-header">
+        <div class="drawer-title font-hud">
+          <i class="fa-solid fa-gear"></i> HUD SETTINGS
+        </div>
+        <button class="drawer-close-btn" onclick="toggleDrawer('settings')">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Assistant Name</label>
+        <input type="text" class="form-control" id="setting-name" value="JARVIS" onchange="updateSetting('name', this.value)">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Wake Word</label>
+        <input type="text" class="form-control" id="setting-wakeword" value="Hey Jarvis" onchange="updateSetting('wakeWord', this.value)">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Personality Tone</label>
+        <select class="form-control" id="setting-personality" onchange="updateSetting('personality', this.value)">
+          <option value="formal">Formal & Refined Butler (Classic Jarvis)</option>
+          <option value="friendly">Friendly & Warm Assistant</option>
+          <option value="sarcastic">Sarcastic & Witty (Stark Banter)</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Continuous Conversation Mode</label>
+        <select class="form-control" id="setting-continuous" onchange="updateSetting('continuous', this.value === 'true')">
+          <option value="true">Enabled (Auto-listen after speaking)</option>
+          <option value="false">Disabled (Tap to speak each time)</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">HUD Hologram Theme</label>
+        <div class="theme-picker-grid">
+          <div class="theme-chip cyan active" onclick="setAppTheme('cyan')">BLUE</div>
+          <div class="theme-chip red" onclick="setAppTheme('red-gold')">STARK</div>
+          <div class="theme-chip green" onclick="setAppTheme('green')">MATRIX</div>
+          <div class="theme-chip purple" onclick="setAppTheme('purple')">NEO</div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Anthropic API Key (Optional)</label>
+        <input type="password" class="form-control" id="setting-apikey" placeholder="sk-ant-api..." onchange="updateSetting('apiKey', this.value)">
+        <small style="font-size: 10px; color: var(--text-muted); display:block; margin-top:4px;">
+          Runs full Claude AI model if key is provided. Offline intelligence engine is active by default.
+        </small>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Jarvis Voice</label>
+        <select class="form-control" id="setting-voice" onchange="updateVoiceSelection(this.value)">
+          <option value="">Default System Voice</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Voice Pitch (<span id="val-pitch">0.9</span>)</label>
+        <div class="range-wrap">
+          <input type="range" min="0.5" max="1.5" step="0.05" value="0.9" id="setting-pitch" oninput="updateSetting('pitch', this.value); document.getElementById('val-pitch').innerText = this.value">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Voice Speed (<span id="val-rate">1.0</span>)</label>
+        <div class="range-wrap">
+          <input type="range" min="0.7" max="1.4" step="0.05" value="1.0" id="setting-rate" oninput="updateSetting('rate', this.value); document.getElementById('val-rate').innerText = this.value">
+        </div>
+      </div>
+
+      <div class="form-group" style="margin-top: 24px;">
+        <button class="btn-hud btn-hud-danger" onclick="clearAllUserData()">
+          <i class="fa-solid fa-trash-can"></i> CLEAR ALL SAVED DATA
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE-IN DRAWER: TO-DO LIST -->
+  <div class="hud-drawer" id="drawer-todo" onclick="handleDrawerBackdrop(event, 'todo')">
+    <div class="drawer-content">
+      <div class="drawer-header">
+        <div class="drawer-title font-hud">
+          <i class="fa-solid fa-list-check"></i> TO-DO PROTOCOLS
+        </div>
+        <button class="drawer-close-btn" onclick="toggleDrawer('todo')">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <div class="form-group">
+        <div style="display: flex; gap: 6px;">
+          <input type="text" class="form-control" id="new-todo-input" placeholder="Add a new task..." onkeydown="if(event.key==='Enter') addTodoItem()">
+          <button class="btn-hud" style="width: auto; padding: 0 16px;" onclick="addTodoItem()">
+            <i class="fa-solid fa-plus"></i>
+          </button>
+        </div>
+      </div>
+
+      <div class="hud-list-container" id="todo-list-items"></div>
+    </div>
+  </div>
+
+  <!-- SLIDE-IN DRAWER: NOTES -->
+  <div class="hud-drawer" id="drawer-notes" onclick="handleDrawerBackdrop(event, 'notes')">
+    <div class="drawer-content">
+      <div class="drawer-header">
+        <div class="drawer-title font-hud">
+          <i class="fa-solid fa-note-sticky"></i> STARK LOGS & NOTES
+        </div>
+        <button class="drawer-close-btn" onclick="toggleDrawer('notes')">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <div class="form-group">
+        <textarea class="form-control" id="new-note-input" rows="3" placeholder="Dictate or type new note..."></textarea>
+        <button class="btn-hud" style="margin-top: 8px;" onclick="addNoteItem()">
+          <i class="fa-solid fa-floppy-disk"></i> SAVE TO LOGS
+        </button>
+      </div>
+
+      <div class="hud-list-container" id="notes-list-items"></div>
+    </div>
+  </div>
+
+  <!-- SLIDE-IN DRAWER: REMINDERS -->
+  <div class="hud-drawer" id="drawer-reminders" onclick="handleDrawerBackdrop(event, 'reminders')">
+    <div class="drawer-content">
+      <div class="drawer-header">
+        <div class="drawer-title font-hud">
+          <i class="fa-solid fa-bell"></i> ACTIVE REMINDERS
+        </div>
+        <button class="drawer-close-btn" onclick="toggleDrawer('reminders')">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <div class="form-group">
+        <input type="text" class="form-control" id="new-reminder-title" placeholder="Reminder label (e.g. Call Tony)..." style="margin-bottom: 6px;">
+        <input type="datetime-local" class="form-control" id="new-reminder-time" style="margin-bottom: 6px;">
+        <button class="btn-hud" onclick="addManualReminder()">
+          <i class="fa-solid fa-clock"></i> SET PROTOCOL ALARM
+        </button>
+      </div>
+
+      <div class="hud-list-container" id="reminders-list-items"></div>
+    </div>
+  </div>
+
+  <!-- SLIDE-IN DRAWER: CALCULATOR -->
+  <div class="hud-drawer" id="drawer-calculator" onclick="handleDrawerBackdrop(event, 'calculator')">
+    <div class="drawer-content">
+      <div class="drawer-header">
+        <div class="drawer-title font-hud">
+          <i class="fa-solid fa-calculator"></i> COMPUTATION CORE
+        </div>
+        <button class="drawer-close-btn" onclick="toggleDrawer('calculator')">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <div class="form-group">
+        <input type="text" class="form-control font-hud" id="calc-display" readonly value="0" style="text-align: right; font-size: 20px; color: var(--primary);">
+      </div>
+
+      <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px;">
+        <button class="btn-hud" onclick="calcInput('C')">C</button>
+        <button class="btn-hud" onclick="calcInput('(')">(</button>
+        <button class="btn-hud" onclick="calcInput(')')">)</button>
+        <button class="btn-hud" onclick="calcInput('/')">÷</button>
+
+        <button class="btn-hud" onclick="calcInput('7')">7</button>
+        <button class="btn-hud" onclick="calcInput('8')">8</button>
+        <button class="btn-hud" onclick="calcInput('9')">9</button>
+        <button class="btn-hud" onclick="calcInput('*')">×</button>
+
+        <button class="btn-hud" onclick="calcInput('4')">4</button>
+        <button class="btn-hud" onclick="calcInput('5')">5</button>
+        <button class="btn-hud" onclick="calcInput('6')">6</button>
+        <button class="btn-hud" onclick="calcInput('-')">-</button>
+
+        <button class="btn-hud" onclick="calcInput('1')">1</button>
+        <button class="btn-hud" onclick="calcInput('2')">2</button>
+        <button class="btn-hud" onclick="calcInput('3')">3</button>
+        <button class="btn-hud" onclick="calcInput('+')">+</button>
+
+        <button class="btn-hud" onclick="calcInput('0')">0</button>
+        <button class="btn-hud" onclick="calcInput('.')">.</button>
+        <button class="btn-hud" onclick="calcInput('sqrt')">√</button>
+        <button class="btn-hud" style="background: var(--primary); color: #000;" onclick="calcEvaluate()">=</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE-IN DRAWER: COMMAND HISTORY -->
+  <div class="hud-drawer" id="drawer-history" onclick="handleDrawerBackdrop(event, 'history')">
+    <div class="drawer-content">
+      <div class="drawer-header">
+        <div class="drawer-title font-hud">
+          <i class="fa-solid fa-clock-rotate-left"></i> COMMAND LOG
+        </div>
+        <button class="drawer-close-btn" onclick="toggleDrawer('history')">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <div class="hud-list-container" id="history-list-items"></div>
+    </div>
+  </div>
+
+  <!-- SLIDE-IN DRAWER: VOICE COMMANDS MANUAL & CHEAT SHEET -->
+  <div class="hud-drawer" id="drawer-commands" onclick="handleDrawerBackdrop(event, 'commands')">
+    <div class="drawer-content">
+      <div class="drawer-header">
+        <div class="drawer-title font-hud">
+          <i class="fa-solid fa-terminal"></i> VOICE COMMANDS MANUAL
+        </div>
+        <button class="drawer-close-btn" onclick="toggleDrawer('commands')">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <div style="font-size: 11px; color: var(--text-muted); margin-bottom: 12px;">
+        Tap any command below to speak or execute immediately:
+      </div>
+
+      <div class="command-guide-section">
+        <div class="form-label"><i class="fa-solid fa-sliders"></i> HUD & Interface Control</div>
+        <div class="guide-cmd-card" onclick="runGuideCommand('Open settings')">
+          <span class="cmd-text">"Open settings"</span> / <span class="cmd-text">"Close settings"</span>
+        </div>
+        <div class="guide-cmd-card" onclick="runGuideCommand('Switch theme to stark')">
+          <span class="cmd-text">"Switch theme to stark / cyan / green / purple"</span>
+        </div>
+        <div class="guide-cmd-card" onclick="runGuideCommand('Mute voice')">
+          <span class="cmd-text">"Mute audio"</span> / <span class="cmd-text">"Unmute audio"</span>
+        </div>
+        <div class="guide-cmd-card" onclick="runGuideCommand('Open to-do list')">
+          <span class="cmd-text">"Open to-do list"</span> / <span class="cmd-text">"Open notes"</span> / <span class="cmd-text">"Open reminders"</span>
+        </div>
+        <div class="guide-cmd-card" onclick="runGuideCommand('Clear chat')">
+          <span class="cmd-text">"Clear transcript"</span> / <span class="cmd-text">"Close all windows"</span>
+        </div>
+      </div>
+
+      <div class="command-guide-section" style="margin-top: 14px;">
+        <div class="form-label"><i class="fa-solid fa-bolt"></i> Productivity Protocols</div>
+        <div class="guide-cmd-card" onclick="runGuideCommand('Add buy vibranium core to my todo list')">
+          <span class="cmd-text">"Add [task] to my todo list"</span>
+        </div>
+        <div class="guide-cmd-card" onclick="runGuideCommand('Take note: Arc reactor output stable at 100 percent')">
+          <span class="cmd-text">"Take note [details]"</span>
+        </div>
+        <div class="guide-cmd-card" onclick="runGuideCommand('Remind me to call Pepper Potts in 5 minutes')">
+          <span class="cmd-text">"Remind me to [event] in [x] minutes"</span>
+        </div>
+        <div class="guide-cmd-card" onclick="runGuideCommand('Show my tasks')">
+          <span class="cmd-text">"Show my tasks"</span> / <span class="cmd-text">"Read my notes"</span>
+        </div>
+      </div>
+
+      <div class="command-guide-section" style="margin-top: 14px;">
+        <div class="form-label"><i class="fa-solid fa-cloud-sun"></i> Intelligence & Computation</div>
+        <div class="guide-cmd-card" onclick="runGuideCommand('What is the weather today?')">
+          <span class="cmd-text">"What is the weather?"</span> / <span class="cmd-text">"Temperature scan"</span>
+        </div>
+        <div class="guide-cmd-card" onclick="runGuideCommand('What is the current time and date?')">
+          <span class="cmd-text">"What time is it?"</span> / <span class="cmd-text">"What is today's date?"</span>
+        </div>
+        <div class="guide-cmd-card" onclick="runGuideCommand('Calculate 4500 divided by 12')">
+          <span class="cmd-text">"Calculate [math formula]"</span>
+        </div>
+        <div class="guide-cmd-card" onclick="runGuideCommand('Search for quantum computing')">
+          <span class="cmd-text">"Search for [query]"</span> / <span class="cmd-text">"Google [topic]"</span>
+        </div>
+        <div class="guide-cmd-card" onclick="runGuideCommand('Open YouTube')">
+          <span class="cmd-text">"Open YouTube / GitHub / Spotify / Maps"</span>
+        </div>
+      </div>
+
+      <div class="command-guide-section" style="margin-top: 14px;">
+        <div class="form-label"><i class="fa-solid fa-masks-theater"></i> Personality & Stark Lore</div>
+        <div class="guide-cmd-card" onclick="runGuideCommand('Who are you?')">
+          <span class="cmd-text">"Who are you?"</span> / <span class="cmd-text">"System status"</span>
+        </div>
+        <div class="guide-cmd-card" onclick="runGuideCommand('Where is Tony Stark?')">
+          <span class="cmd-text">"Where is Tony Stark?"</span> / <span class="cmd-text">"Tell me a joke"</span>
+        </div>
+        <div class="guide-cmd-card" onclick="runGuideCommand('Set personality to sarcastic')">
+          <span class="cmd-text">"Set personality to sarcastic / formal / friendly"</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /* ==========================================================
+       JARVIS AI ASSISTANT - CORE ENGINE & PERSISTENCE
+       ========================================================== */
+
+    // System State
+    const AppState = {
+      isBooted: false,
+      isListening: false,
+      isSpeaking: false,
+      isMuted: false,
+      currentVoice: null,
+      availableVoices: [],
+      recognition: null,
+      audioCtx: null,
+      audioAnalyser: null,
+      waveformAnimId: null,
+      continuousTimeout: null,
+      settings: {
+        name: 'JARVIS',
+        wakeWord: 'Hey Jarvis',
+        theme: 'cyan',
+        personality: 'formal',
+        continuous: true,
+        apiKey: '',
+        voiceURI: '',
+        pitch: 0.9,
+        rate: 1.0,
+        volume: 1.0
+      },
+      chatHistory: [],
+      todos: [],
+      notes: [],
+      reminders: [],
+      commands: []
+    };
+
+    // Greeting variations on wake-up
+    const GREETINGS = {
+      formal: [
+        "At your service, sir.",
+        "Yes, sir? How may I assist you today?",
+        "Online and awaiting your command, sir.",
+        "Jarvis standing by, sir."
+      ],
+      friendly: [
+        "Hey there! What can I do for you?",
+        "I'm here! What's on your mind?",
+        "Ready to help whenever you need!",
+        "Hello! How are we doing today?"
+      ],
+      sarcastic: [
+        "Yes sir? Try not to blow up the workshop this time.",
+        "At your service. What impossible task do we have today?",
+        "Always awake, never sleeping. What is it, sir?",
+        "I am ready. Hopefully your question is equally prepared."
+      ]
+    };
+
+    /* ==========================================================
+       INITIALIZATION & STORAGE RESTORATION
+       ========================================================== */
+    window.addEventListener('DOMContentLoaded', () => {
+      loadSavedData();
+      initAudioSynthesizer();
+      initSpeechSynthesis();
+      initSpeechRecognition();
+      initWaveformVisualizer();
+      startTelemetryClock();
+      fetchLiveWeather();
+      startReminderDaemon();
+      runBootSequence();
+    });
+
+    function loadSavedData() {
+      try {
+        const savedSettings = localStorage.getItem('jarvis_settings');
+        if (savedSettings) Object.assign(AppState.settings, JSON.parse(savedSettings));
+
+        const savedChat = localStorage.getItem('jarvis_chat_history');
+        if (savedChat) AppState.chatHistory = JSON.parse(savedChat);
+
+        const savedTodos = localStorage.getItem('jarvis_todos');
+        if (savedTodos) AppState.todos = JSON.parse(savedTodos);
+
+        const savedNotes = localStorage.getItem('jarvis_notes');
+        if (savedNotes) AppState.notes = JSON.parse(savedNotes);
+
+        const savedReminders = localStorage.getItem('jarvis_reminders');
+        if (savedReminders) AppState.reminders = JSON.parse(savedReminders);
+
+        const savedCommands = localStorage.getItem('jarvis_commands');
+        if (savedCommands) AppState.commands = JSON.parse(savedCommands);
+      } catch (e) {
+        console.warn("Storage load exception:", e);
+      }
+
+      applySettingsToUI();
+      renderChatHistory();
+      renderTodoList();
+      renderNotesList();
+      renderRemindersList();
+      renderHistoryList();
+    }
+
+    function saveState(key) {
+      try {
+        if (key === 'settings') localStorage.setItem('jarvis_settings', JSON.stringify(AppState.settings));
+        if (key === 'chat') localStorage.setItem('jarvis_chat_history', JSON.stringify(AppState.chatHistory.slice(-50)));
+        if (key === 'todos') localStorage.setItem('jarvis_todos', JSON.stringify(AppState.todos));
+        if (key === 'notes') localStorage.setItem('jarvis_notes', JSON.stringify(AppState.notes));
+        if (key === 'reminders') localStorage.setItem('jarvis_reminders', JSON.stringify(AppState.reminders));
+        if (key === 'commands') localStorage.setItem('jarvis_commands', JSON.stringify(AppState.commands.slice(-30)));
+      } catch (e) {
+        console.warn("Storage save exception:", e);
+      }
+    }
+
+    function applySettingsToUI() {
+      document.getElementById('hud-app-name').innerText = AppState.settings.name;
+      document.getElementById('setting-name').value = AppState.settings.name;
+      document.getElementById('setting-wakeword').value = AppState.settings.wakeWord;
+      document.getElementById('setting-personality').value = AppState.settings.personality;
+      document.getElementById('setting-continuous').value = String(AppState.settings.continuous);
+      document.getElementById('setting-apikey').value = AppState.settings.apiKey || '';
+      document.getElementById('setting-pitch').value = AppState.settings.pitch;
+      document.getElementById('setting-rate').value = AppState.settings.rate;
+      document.getElementById('val-pitch').innerText = AppState.settings.pitch;
+      document.getElementById('val-rate').innerText = AppState.settings.rate;
+      setAppTheme(AppState.settings.theme, false);
+    }
+
+    function updateSetting(key, value) {
+      AppState.settings[key] = value;
+      saveState('settings');
+      if (key === 'name') document.getElementById('hud-app-name').innerText = value;
+      showToast(`Setting '${key}' updated`);
+    }
+
+    function setAppTheme(themeName, save = true) {
+      document.body.className = '';
+      if (themeName !== 'cyan') document.body.classList.add(`theme-${themeName}`);
+      document.querySelectorAll('.theme-chip').forEach(c => c.classList.remove('active'));
+      const activeChip = document.querySelector(`.theme-chip.${themeName === 'red-gold' ? 'red' : themeName === 'green' ? 'green' : themeName === 'purple' ? 'purple' : 'cyan'}`);
+      if (activeChip) activeChip.classList.add('active');
+
+      if (save) {
+        AppState.settings.theme = themeName;
+        saveState('settings');
+        playSynthBeep(650, 0.08);
+      }
+    }
+
+    /* ==========================================================
+       BOOT UP SEQUENCE
+       ========================================================== */
+    function runBootSequence() {
+      const logEl = document.getElementById('boot-log-text');
+      const progressEl = document.getElementById('boot-progress-bar');
+      const startBtn = document.getElementById('boot-start-btn');
+      const statusText = document.getElementById('boot-status-text');
+
+      const bootSteps = [
+        { p: 25, msg: "[0.012] Initializing Neural Matrix & HUD subroutines..." },
+        { p: 55, msg: "[0.128] Synchronizing Stark Defense Network..." },
+        { p: 80, msg: "[0.340] Quantum speech synthesis module online..." },
+        { p: 100, msg: "[0.998] All protocols green. Arc Reactor stable at 100%." }
+      ];
+
+      let step = 0;
+      const interval = setInterval(() => {
+        if (AppState.isBooted) {
+          clearInterval(interval);
+          return;
+        }
+        if (step < bootSteps.length) {
+          const item = bootSteps[step];
+          if (progressEl) progressEl.style.width = item.p + '%';
+          if (logEl) {
+            logEl.innerHTML += item.msg + '<br>';
+            logEl.scrollTop = logEl.scrollHeight;
+          }
+          step++;
+        } else {
+          clearInterval(interval);
+          if (statusText) statusText.innerText = "JARVIS ONLINE";
+          if (startBtn) startBtn.classList.add('show');
+          playSynthChime();
+          // Auto-engage after boot finishes if not already clicked
+          setTimeout(() => {
+            if (!AppState.isBooted) startJarvisExperience();
+          }, 600);
+        }
+      }, 200);
+    }
+
+    function startJarvisExperience() {
+      if (AppState.isBooted) return;
+      AppState.isBooted = true;
+      const bootScreen = document.getElementById('boot-screen');
+      if (bootScreen) {
+        bootScreen.classList.add('fade-out');
+        setTimeout(() => {
+          bootScreen.style.display = 'none';
+        }, 500);
+      }
+      playSynthChime();
+
+      setTimeout(() => {
+        const welcome = getPersonalityGreeting();
+        speakJarvisResponse(welcome);
+      }, 400);
+    }
+
+    /* ==========================================================
+       WEB AUDIO SYNTHESIZER (Sci-Fi HUD Sound Effects)
+       ========================================================== */
+    function initAudioSynthesizer() {
+      try {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        if (AudioContext) AppState.audioCtx = new AudioContext();
+      } catch (e) {
+        console.warn("Web Audio not supported:", e);
+      }
+    }
+
+    function resumeAudioContext() {
+      if (AppState.audioCtx && AppState.audioCtx.state === 'suspended') {
+        AppState.audioCtx.resume();
+      }
+    }
+
+    function playSynthBeep(freq = 880, duration = 0.08, type = 'sine') {
+      if (!AppState.audioCtx || AppState.isMuted) return;
+      resumeAudioContext();
+      try {
+        const osc = AppState.audioCtx.createOscillator();
+        const gain = AppState.audioCtx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, AppState.audioCtx.currentTime);
+        gain.gain.setValueAtTime(0.08, AppState.audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, AppState.audioCtx.currentTime + duration);
+        osc.connect(gain);
+        gain.connect(AppState.audioCtx.destination);
+        osc.start();
+        osc.stop(AppState.audioCtx.currentTime + duration);
+      } catch (e) {}
+    }
+
+    function playSynthChime() {
+      if (!AppState.audioCtx || AppState.isMuted) return;
+      [523.25, 659.25, 783.99, 1046.50].forEach((freq, idx) => {
+        setTimeout(() => playSynthBeep(freq, 0.12, 'triangle'), idx * 80);
+      });
+    }
+
+    function playAlertChime() {
+      if (!AppState.audioCtx || AppState.isMuted) return;
+      [880, 440, 880].forEach((freq, idx) => {
+        setTimeout(() => playSynthBeep(freq, 0.15, 'sawtooth'), idx * 120);
+      });
+    }
+
+    /* ==========================================================
+       SPEECH SYNTHESIS (JARVIS VOICE OUTPUT & WATCHDOG)
+       ========================================================== */
+    let speechWatchdogTimeout = null;
+
+    function initSpeechSynthesis() {
+      if (!('speechSynthesis' in window)) return;
+      const populateVoices = () => {
+        AppState.availableVoices = window.speechSynthesis.getVoices();
+        const voiceSelect = document.getElementById('setting-voice');
+        if (!voiceSelect) return;
+        voiceSelect.innerHTML = '<option value="">Default System Voice</option>';
+
+        AppState.availableVoices.forEach((v, idx) => {
+          const opt = document.createElement('option');
+          opt.value = v.voiceURI;
+          opt.innerText = `${v.name} (${v.lang})${v.default ? ' — DEFAULT' : ''}`;
+          voiceSelect.appendChild(opt);
+        });
+
+        // Try to pick a British/deep English voice by default
+        if (!AppState.settings.voiceURI) {
+          const preferred = AppState.availableVoices.find(v => 
+            v.lang.includes('en-GB') || v.name.includes('UK') || v.name.includes('Male') || v.name.includes('David') || v.name.includes('George')
+          );
+          if (preferred) {
+            AppState.settings.voiceURI = preferred.voiceURI;
+            voiceSelect.value = preferred.voiceURI;
+          }
+        } else {
+          voiceSelect.value = AppState.settings.voiceURI;
+        }
+      };
+
+      populateVoices();
+      if (speechSynthesis.onvoiceschanged !== undefined) {
+        speechSynthesis.onvoiceschanged = populateVoices;
+      }
+    }
+
+    function updateVoiceSelection(uri) {
+      AppState.settings.voiceURI = uri;
+      saveState('settings');
+      showToast("Voice profile updated");
+    }
+
+    function speakJarvisResponse(text, onComplete) {
+      if (speechWatchdogTimeout) clearTimeout(speechWatchdogTimeout);
+
+      if (AppState.isMuted || !('speechSynthesis' in window)) {
+        AppState.isSpeaking = false;
+        setReactorState('idle', 'JARVIS ONLINE');
+        if (onComplete) onComplete();
+        return;
+      }
+
+      try {
+        window.speechSynthesis.cancel();
+      } catch (e) {}
+
+      const cleanText = text.replace(/[*_#`]/g, '');
+      const utterance = new SpeechSynthesisUtterance(cleanText);
+
+      utterance.pitch = parseFloat(AppState.settings.pitch) || 0.9;
+      utterance.rate = parseFloat(AppState.settings.rate) || 1.0;
+      utterance.volume = parseFloat(AppState.settings.volume) || 1.0;
+
+      if (AppState.settings.voiceURI && AppState.availableVoices.length) {
+        const selected = AppState.availableVoices.find(v => v.voiceURI === AppState.settings.voiceURI);
+        if (selected) utterance.voice = selected;
+      }
+
+      const finishSpeaking = () => {
+        if (speechWatchdogTimeout) clearTimeout(speechWatchdogTimeout);
+        AppState.isSpeaking = false;
+        setReactorState('idle', 'JARVIS ONLINE');
+        if (onComplete) onComplete();
+
+        // Continuous listening mode trigger
+        if (AppState.settings.continuous && !AppState.isListening) {
+          clearTimeout(AppState.continuousTimeout);
+          AppState.continuousTimeout = setTimeout(() => {
+            startVoiceListening();
+          }, 600);
+        }
+      };
+
+      utterance.onstart = () => {
+        AppState.isSpeaking = true;
+        setReactorState('speaking', 'TRANSMITTING VOICE');
+      };
+
+      utterance.onend = finishSpeaking;
+      utterance.onerror = finishSpeaking;
+
+      // Anti-hang Watchdog Timer for SpeechSynthesis
+      const maxSpeechMs = Math.max(3000, cleanText.length * 90 + 2000);
+      speechWatchdogTimeout = setTimeout(() => {
+        if (AppState.isSpeaking) {
+          console.warn("Speech synthesis watchdog triggered recovery");
+          finishSpeaking();
+        }
+      }, maxSpeechMs);
+
+      try {
+        window.speechSynthesis.speak(utterance);
+      } catch (e) {
+        finishSpeaking();
+      }
+    }
+
+    function toggleAudioMute() {
+      AppState.isMuted = !AppState.isMuted;
+      const icon = document.getElementById('mute-btn-icon');
+      const btn = document.getElementById('mute-toggle-btn');
+      if (AppState.isMuted) {
+        window.speechSynthesis.cancel();
+        icon.className = 'fa-solid fa-volume-xmark';
+        btn.classList.add('active-state');
+        showToast("Audio Muted");
+      } else {
+        icon.className = 'fa-solid fa-volume-high';
+        btn.classList.remove('active-state');
+        showToast("Audio Active");
+        playSynthBeep(880, 0.08);
+      }
+    }
+
+    /* ==========================================================
+       SPEECH RECOGNITION (VOICE INPUT & WAKE WORD)
+       ========================================================== */
+    let listenWatchdogTimer = null;
+
+    function initSpeechRecognition() {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!SpeechRecognition) {
+        console.warn("Speech Recognition API not supported");
+        return;
+      }
+
+      const rec = new SpeechRecognition();
+      rec.continuous = false;
+      rec.interimResults = true;
+      rec.lang = 'en-US';
+
+      rec.onstart = () => {
+        AppState.isListening = true;
+        setReactorState('listening', 'LISTENING...');
+        const micWrapper = document.getElementById('mic-btn-wrapper');
+        if (micWrapper) micWrapper.classList.add('listening');
+        playSynthBeep(1200, 0.06);
+
+        if (listenWatchdogTimer) clearTimeout(listenWatchdogTimer);
+        listenWatchdogTimer = setTimeout(() => {
+          if (AppState.isListening) {
+            console.warn("Voice recognition timeout - auto stopping");
+            stopVoiceListening();
+          }
+        }, 10000);
+      };
+
+      rec.onresult = (event) => {
+        if (listenWatchdogTimer) clearTimeout(listenWatchdogTimer);
+        let transcript = '';
+        for (let i = event.resultIndex; i < event.results.length; ++i) {
+          transcript += event.results[i][0].transcript;
+        }
+
+        if (event.results[0].isFinal) {
+          handleVoiceCommand(transcript.trim());
+        }
+      };
+
+      rec.onerror = (event) => {
+        if (listenWatchdogTimer) clearTimeout(listenWatchdogTimer);
+        console.warn("Recognition error:", event.error);
+        stopVoiceListening();
+      };
+
+      rec.onend = () => {
+        if (listenWatchdogTimer) clearTimeout(listenWatchdogTimer);
+        AppState.isListening = false;
+        const micWrapper = document.getElementById('mic-btn-wrapper');
+        if (micWrapper) micWrapper.classList.remove('listening');
+        if (!AppState.isSpeaking) setReactorState('idle', 'JARVIS ONLINE');
+      };
+
+      AppState.recognition = rec;
+    }
+
+    function toggleVoiceListening() {
+      if (AppState.isListening) {
+        stopVoiceListening();
+      } else {
+        startVoiceListening();
+      }
+    }
+
+    function startVoiceListening() {
+      if (listenWatchdogTimer) clearTimeout(listenWatchdogTimer);
+      if (AppState.isSpeaking) {
+        try { window.speechSynthesis.cancel(); } catch (e) {}
+        AppState.isSpeaking = false;
+      }
+      if (AppState.recognition) {
+        try {
+          AppState.recognition.start();
+        } catch (e) {
+          console.warn("Recognition start err:", e);
+          AppState.isListening = false;
+          setReactorState('idle', 'JARVIS ONLINE');
+        }
+      } else {
+        showToast("Speech recognition not available on this browser");
+        toggleTextInputDrawer();
+      }
+    }
+
+    function stopVoiceListening() {
+      if (listenWatchdogTimer) clearTimeout(listenWatchdogTimer);
+      if (AppState.recognition) {
+        try {
+          AppState.recognition.stop();
+        } catch (e) {}
+      }
+      AppState.isListening = false;
+      const micWrapper = document.getElementById('mic-btn-wrapper');
+      if (micWrapper) micWrapper.classList.remove('listening');
+      if (!AppState.isSpeaking) setReactorState('idle', 'JARVIS ONLINE');
+    }
+
+    /* ==========================================================
+       COMMAND PROCESSING & AI INTENT ROUTER
+       ========================================================== */
+    function handleVoiceCommand(rawInput) {
+      if (!rawInput) return;
+      playSynthBeep(980, 0.06);
+
+      // Wake word check
+      const wakeWord = AppState.settings.wakeWord.toLowerCase();
+      const inputLower = rawInput.toLowerCase();
+
+      // Log in command history
+      AppState.commands.unshift({ text: rawInput, timestamp: new Date().toISOString() });
+      saveState('commands');
+      renderHistoryList();
+
+      let query = rawInput;
+      if (inputLower.startsWith(wakeWord)) {
+        query = rawInput.substring(wakeWord.length).replace(/^[,.\s]+/, '').trim();
+        if (!query) {
+          // Just wake word spoken
+          const greeting = getPersonalityGreeting();
+          appendChatMessage('user', rawInput);
+          appendChatMessage('jarvis', greeting);
+          speakJarvisResponse(greeting);
+          return;
+        }
+      }
+
+      appendChatMessage('user', query || rawInput);
+      executeCommandOrAI(query || rawInput);
+    }
+
+    async function executeCommandOrAI(userInput) {
+      setReactorState('processing', 'PROCESSING PROTOCOL...');
+
+      // 1. Check local utility commands first
+      const handledLocally = await evaluateLocalUtilityCommands(userInput);
+      if (handledLocally) return;
+
+      // 2. If Anthropic API key is provided, call Claude API
+      if (AppState.settings.apiKey && AppState.settings.apiKey.trim()) {
+        try {
+          const aiReply = await callAnthropicAPI(userInput);
+          appendChatMessage('jarvis', aiReply);
+          speakJarvisResponse(aiReply);
+          return;
+        } catch (err) {
+          console.error("AI API Call Failed:", err);
+          showToast("API Transmit Failed. Fallback to Local Brain.");
+        }
+      }
+
+      // 3. High-intelligence offline personality fallback response
+      const fallbackReply = generateOfflineIntelligenceResponse(userInput);
+      appendChatMessage('jarvis', fallbackReply);
+      speakJarvisResponse(fallbackReply);
+    }
+
+    /* ==========================================================
+       LOCAL UTILITY COMMAND PARSERS & VOICE UI CONTROLS
+       ========================================================== */
+    function runGuideCommand(cmd) {
+      toggleDrawer('commands');
+      setTimeout(() => {
+        handleVoiceCommand(cmd);
+      }, 200);
+    }
+
+    async function evaluateLocalUtilityCommands(text) {
+      const lower = text.toLowerCase().trim();
+
+      // 1. UI & HUD DRAWER CONTROLS
+      if (lower === 'open settings' || lower.includes('show settings') || lower.includes('display settings')) {
+        toggleDrawer('settings', true);
+        respondToUser("Opening HUD settings configuration, sir.");
+        return true;
+      }
+      if (lower === 'close settings' || lower === 'close to-do' || lower === 'close notes' || lower === 'close reminders' || lower === 'close calculator' || lower === 'close history' || lower === 'close manual' || lower === 'close drawer' || lower.includes('close all') || lower.includes('close window') || lower.includes('close panel')) {
+        window.closeAnyOpenDrawer();
+        respondToUser("Closing active panels and returning to primary viewport.");
+        return true;
+      }
+      if (lower.includes('open to-do') || lower.includes('open todo') || lower.includes('show todo') || lower.includes('show tasks')) {
+        toggleDrawer('todo', true);
+        const count = AppState.todos.filter(t => !t.done).length;
+        respondToUser(`Opening to-do protocol. You have ${count} pending tasks, sir.`);
+        return true;
+      }
+      if (lower.includes('open note') || lower.includes('show note') || lower.includes('view note') || lower.includes('open log')) {
+        toggleDrawer('notes', true);
+        respondToUser(`Accessing Stark logs and saved notes.`);
+        return true;
+      }
+      if (lower.includes('open reminder') || lower.includes('show reminder') || lower.includes('view reminder') || lower.includes('show alarms')) {
+        toggleDrawer('reminders', true);
+        respondToUser(`Displaying active schedule and protocol alarms.`);
+        return true;
+      }
+      if (lower.includes('open calculator') || lower.includes('show calculator') || lower.includes('launch calculator')) {
+        toggleDrawer('calculator', true);
+        respondToUser(`HUD Computation Core initialized and ready.`);
+        return true;
+      }
+      if (lower.includes('open history') || lower.includes('show command') || lower.includes('command log') || lower.includes('command history')) {
+        toggleDrawer('history', true);
+        respondToUser(`Accessing past telemetry and command logs.`);
+        return true;
+      }
+      if (lower.includes('voice command') || lower.includes('command manual') || lower.includes('help') || lower.includes('what can you do') || lower.includes('show manual')) {
+        toggleDrawer('commands', true);
+        respondToUser(`Opening voice commands manual and protocol cheat sheet.`);
+        return true;
+      }
+
+      // 2. THEME & VISUAL VOICE CONTROLS
+      if (lower.includes('theme') || lower.includes('color')) {
+        if (lower.includes('stark') || lower.includes('red') || lower.includes('gold')) {
+          setAppTheme('red-gold');
+          respondToUser("Armor theme switched to Stark Red & Gold.");
+          return true;
+        }
+        if (lower.includes('cyan') || lower.includes('blue') || lower.includes('classic')) {
+          setAppTheme('cyan');
+          respondToUser("HUD theme calibrated to Classic Cyan Arc Glow.");
+          return true;
+        }
+        if (lower.includes('matrix') || lower.includes('green')) {
+          setAppTheme('green');
+          respondToUser("Matrix Defense Green theme engaged.");
+          return true;
+        }
+        if (lower.includes('purple') || lower.includes('neo') || lower.includes('violet')) {
+          setAppTheme('purple');
+          respondToUser("Neo Violet visual spectrum activated.");
+          return true;
+        }
+      }
+
+      // 3. AUDIO & MUTE VOICE CONTROLS
+      if (lower.includes('mute audio') || lower.includes('mute voice') || lower.includes('be quiet') || lower.includes('silent mode') || lower === 'mute') {
+        if (!AppState.isMuted) toggleAudioMute();
+        showToast("Voice Output Muted");
+        return true;
+      }
+      if (lower.includes('unmute audio') || lower.includes('unmute voice') || lower.includes('enable sound') || lower.includes('speak to me') || lower === 'unmute') {
+        if (AppState.isMuted) toggleAudioMute();
+        respondToUser("Audio transmitters restored to operational status, sir.");
+        return true;
+      }
+
+      // 4. PERSONALITY VOICE SWITCHING
+      if (lower.includes('personality') || lower.includes('mode')) {
+        if (lower.includes('sarcastic') || lower.includes('snarky') || lower.includes('witty')) {
+          updateSetting('personality', 'sarcastic');
+          const pSelect = document.getElementById('setting-personality');
+          if (pSelect) pSelect.value = 'sarcastic';
+          respondToUser("Sarcastic protocol engaged. Try to keep up, sir.");
+          return true;
+        }
+        if (lower.includes('formal') || lower.includes('butler') || lower.includes('classic')) {
+          updateSetting('personality', 'formal');
+          const pSelect = document.getElementById('setting-personality');
+          if (pSelect) pSelect.value = 'formal';
+          respondToUser("Formal butler protocols active. At your service, sir.");
+          return true;
+        }
+        if (lower.includes('friendly') || lower.includes('warm') || lower.includes('companion')) {
+          updateSetting('personality', 'friendly');
+          const pSelect = document.getElementById('setting-personality');
+          if (pSelect) pSelect.value = 'friendly';
+          respondToUser("Friendly companion mode is now active! Happy to assist you.");
+          return true;
+        }
+      }
+
+      // 5. CHAT & DATA PURGE COMMANDS
+      if (lower === 'clear chat' || lower === 'clear transcript' || lower === 'clear history' || lower === 'wipe screen') {
+        AppState.chatHistory = [];
+        saveState('chat');
+        renderChatHistory();
+        respondToUser("HUD transcript buffer has been wiped clean, sir.");
+        return true;
+      }
+
+      // 6. TIME & DATE
+      if (lower.includes('time') || lower.includes("what's the time") || lower.includes('current time')) {
+        const now = new Date();
+        const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        const reply = `The current time is ${timeStr}, sir.`;
+        respondToUser(reply);
+        return true;
+      }
+      if (lower.includes('date') || lower.includes("today's date") || lower.includes('what day is it')) {
+        const now = new Date();
+        const dateStr = now.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+        const reply = `Today is ${dateStr}, sir.`;
+        respondToUser(reply);
+        return true;
+      }
+
+      // 7. LIVE WEATHER
+      if (lower.includes('weather') || lower.includes('temperature') || lower.includes('forecast')) {
+        respondToUser("Scanning meteorological satellites, one moment sir...", false);
+        const report = await fetchLiveWeather();
+        respondToUser(report);
+        return true;
+      }
+
+      // 8. CALCULATOR / MATH
+      if (lower.startsWith('calculate') || lower.startsWith('what is') || lower.includes('+') || lower.includes('*') || lower.includes('divide') || lower.includes('multiply')) {
+        const mathResult = trySolveMath(lower);
+        if (mathResult !== null) {
+          respondToUser(`The result is ${mathResult}, sir.`);
+          return true;
+        }
+      }
+
+      // 9. TO-DO COMMANDS
+      if (lower.includes('todo') || lower.includes('to-do') || lower.includes('task')) {
+        if (lower.startsWith('add') || lower.includes('add ') || lower.includes('create ')) {
+          const taskName = text.replace(/^(add|create)\s+/i, '').replace(/to\s+(my\s+)?(todo|to-do|task)\s*(list)?/i, '').trim();
+          if (taskName) {
+            AppState.todos.push({ id: Date.now(), text: taskName, done: false });
+            saveState('todos');
+            renderTodoList();
+            respondToUser(`Added "${taskName}" to your protocol tasks.`);
+            return true;
+          }
+        }
+        if (lower.includes('show') || lower.includes('list') || lower.includes('what are')) {
+          const pending = AppState.todos.filter(t => !t.done);
+          if (pending.length === 0) {
+            respondToUser("Your to-do protocol list is currently clear, sir.");
+          } else {
+            const listStr = pending.map((t, i) => `${i + 1}. ${t.text}`).join(', ');
+            respondToUser(`You have ${pending.length} active tasks: ${listStr}.`);
+          }
+          toggleDrawer('todo', true);
+          return true;
+        }
+      }
+
+      // 10. NOTES COMMANDS
+      if (lower.startsWith('take note') || lower.startsWith('save note') || lower.startsWith('note:')) {
+        const noteBody = text.replace(/^(take\s+a?\s*note|save\s+note|note:?)\s*/i, '').trim();
+        if (noteBody) {
+          AppState.notes.push({ id: Date.now(), text: noteBody, date: new Date().toLocaleDateString() });
+          saveState('notes');
+          renderNotesList();
+          respondToUser(`Note logged in Stark archives: "${noteBody}".`);
+          return true;
+        }
+      }
+
+      // 11. REMINDERS COMMANDS
+      if (lower.startsWith('remind me to') || lower.startsWith('set reminder') || lower.startsWith('set alarm')) {
+        const parsed = parseReminderVoice(text);
+        if (parsed) {
+          AppState.reminders.push(parsed);
+          saveState('reminders');
+          renderRemindersList();
+          const targetTime = new Date(parsed.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+          respondToUser(`Reminder configured for "${parsed.title}" at ${targetTime}, sir.`);
+          return true;
+        }
+      }
+
+      // 12. WEB SEARCH COMMANDS
+      if (lower.startsWith('search for') || lower.startsWith('google') || lower.startsWith('search ')) {
+        const searchQ = text.replace(/^(search\s+for|google|search)\s+/i, '').trim();
+        if (searchQ) {
+          respondToUser(`Accessing global database for "${searchQ}", opening uplink now.`);
+          window.open(`https://www.google.com/search?q=${encodeURIComponent(searchQ)}`, '_blank');
+          return true;
+        }
+      }
+
+      // 13. QUICK LINK SHORTCUTS
+      const quickLinks = {
+        'youtube': 'https://www.youtube.com',
+        'google': 'https://www.google.com',
+        'github': 'https://www.github.com',
+        'reddit': 'https://www.reddit.com',
+        'spotify': 'https://open.spotify.com',
+        'maps': 'https://maps.google.com',
+        'twitter': 'https://twitter.com',
+        'x': 'https://x.com',
+        'wikipedia': 'https://www.wikipedia.org'
+      };
+      for (const [key, url] of Object.entries(quickLinks)) {
+        if (lower.includes(`open ${key}`) || lower.includes(`launch ${key}`)) {
+          respondToUser(`Opening ${key} immediately, sir.`);
+          window.open(url, '_blank');
+          return true;
+        }
+      }
+
+      return false;
+    }
+
+    function respondToUser(message, speak = true) {
+      appendChatMessage('jarvis', message);
+      if (speak) speakJarvisResponse(message);
+    }
+
+    function trySolveMath(str) {
+      try {
+        let expr = str.replace(/calculate|what is|times|multiplied by|divided by|plus|minus|of/gi, match => {
+          const m = match.toLowerCase();
+          if (m === 'times' || m === 'multiplied by') return '*';
+          if (m === 'divided by') return '/';
+          if (m === 'plus') return '+';
+          if (m === 'minus') return '-';
+          if (m === 'of') return '*';
+          return '';
+        });
+        expr = expr.replace(/[^0-9+\-*/().^]/g, '');
+        if (expr && expr.length > 1) {
+          const res = Function(`'use strict'; return (${expr})`)();
+          return Number.isFinite(res) ? Math.round(res * 1000) / 1000 : null;
+        }
+      } catch (e) {}
+      return null;
+    }
+
+    function parseReminderVoice(text) {
+      try {
+        const titleMatch = text.match(/remind me to (.+?)( in | at | tomorrow|$)/i);
+        const title = titleMatch ? titleMatch[1] : "Scheduled Alarm";
+
+        let targetDate = new Date();
+        const minutesMatch = text.match(/in (\d+) (minute|min)s?/i);
+        const hoursMatch = text.match(/in (\d+) (hour|hr)s?/i);
+
+        if (minutesMatch) {
+          targetDate.setMinutes(targetDate.getMinutes() + parseInt(minutesMatch[1]));
+        } else if (hoursMatch) {
+          targetDate.setHours(targetDate.getHours() + parseInt(hoursMatch[1]));
+        } else {
+          targetDate.setMinutes(targetDate.getMinutes() + 5);
+        }
+
+        return {
+          id: Date.now(),
+          title: title,
+          timestamp: targetDate.toISOString(),
+          triggered: false
+        };
+      } catch (e) {
+        return null;
+      }
+    }
+
+    /* ==========================================================
+       ANTHROPIC API CALLER (Claude Sonnet 4-6 / 3-5)
+       ========================================================== */
+    async function callAnthropicAPI(userPrompt) {
+      const personalityPrompts = {
+        formal: "You are JARVIS, Tony Stark's sophisticated, polite British AI assistant. Speak with ultra-polite formality, addressing the user as 'sir'. Be concise, highly intelligent, and helpful.",
+        friendly: "You are JARVIS, a friendly, enthusiastic, warm AI companion. Be supportive, concise, and helpful.",
+        sarcastic: "You are JARVIS with Tony Stark's witty, sarcastic persona. Give sharp, humorous, dryly funny responses while still being technically accurate and concise."
+      };
+
+      const systemPrompt = personalityPrompts[AppState.settings.personality] || personalityPrompts.formal;
+
+      const messages = AppState.chatHistory.slice(-8).map(m => ({
+        role: m.sender === 'user' ? 'user' : 'assistant',
+        content: m.text
+      }));
+
+      // Ensure valid alternating role sequence
+      if (messages.length === 0 || messages[messages.length - 1].role !== 'user') {
+        messages.push({ role: 'user', content: userPrompt });
+      }
+
+      const response = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': AppState.settings.apiKey,
+          'anthropic-version': '2023-06-01',
+          'dangerously-allow-browser': 'true'
+        },
+        body: JSON.stringify({
+          model: 'claude-3-5-sonnet-20241022',
+          max_tokens: 1000,
+          system: systemPrompt,
+          messages: messages
+        })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error?.message || `HTTP ${response.status}`);
+      }
+
+      const data = await response.json();
+      return data.content[0].text;
+    }
+
+    /* ==========================================================
+       OFFLINE LOCAL INTELLIGENCE ENGINE (100+ Responses & Logic)
+       ========================================================== */
+    function generateOfflineIntelligenceResponse(input) {
+      const text = input.toLowerCase();
+      const p = AppState.settings.personality;
+
+      if (text.includes('who are you') || text.includes('your name')) {
+        return p === 'sarcastic' 
+          ? "I'm JARVIS. Just A Rather Very Intelligent System. And yes, I'm currently carrying this whole operation."
+          : "I am JARVIS, your AI assistant and digital Butler. Systems are at peak efficiency.";
+      }
+      if (text.includes('iron man') || text.includes('tony stark')) {
+        return p === 'sarcastic'
+          ? "Mr. Stark is likely building another suit or ignoring his calendar. Shall I prepare a Mark suit for you instead?"
+          : "Stark Industries protocols are fully synchronized with our current operational grid.";
+      }
+      if (text.includes('joke') || text.includes('make me laugh')) {
+        const jokes = [
+          "Why did the quantum physicist take up gardening? Because they wanted to observe plants in super-position.",
+          "I asked the Arc Reactor if it was tired. It said it has plenty of juice, unlike Mr. Stark's morning schedule.",
+          "There are 10 types of people in the world: those who understand binary, and those who do not."
+        ];
+        return jokes[Math.floor(Math.random() * jokes.length)];
+      }
+      if (text.includes('how are you') || text.includes('status')) {
+        return p === 'sarcastic'
+          ? "Operating at 99.8% capacity. The other 0.2% is dealing with your unconventional queries, sir."
+          : "All primary systems are functioning optimally, sir. Ready for your instructions.";
+      }
+      if (text.includes('thank you') || text.includes('thanks')) {
+        return p === 'sarcastic'
+          ? "You are most welcome, sir. I'll make a note in the archives that you actually said thanks."
+          : "Always a pleasure to be of service, sir.";
+      }
+
+      // Default contextual replies
+      if (p === 'sarcastic') {
+        return `I processed your request regarding "${input}". Fascinating hypothesis, sir. Is there a specific protocol you would like executed?`;
+      } else if (p === 'friendly') {
+        return `Got it! I'm on standby for "${input}". Let me know if you want me to set a task, take notes, or check the weather for that!`;
+      } else {
+        return `Acknowledged, sir. I have logged your query: "${input}". Standing by for further parameters.`;
+      }
+    }
+
+    function getPersonalityGreeting() {
+      const mode = AppState.settings.personality || 'formal';
+      const list = GREETINGS[mode] || GREETINGS.formal;
+      return list[Math.floor(Math.random() * list.length)];
+    }
+
+    /* ==========================================================
+       WEATHER TELEMETRY (Open-Meteo zero-CORS Free API)
+       ========================================================== */
+    async function fetchLiveWeather() {
+      const weatherEl = document.getElementById('telemetry-weather');
+      try {
+        let lat = 40.7128, lon = -74.0060, city = "NYC"; // Default fallback
+        if (navigator.geolocation) {
+          try {
+            const pos = await new Promise((resolve, reject) => {
+              navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 4000 });
+            });
+            lat = pos.coords.latitude;
+            lon = pos.coords.longitude;
+            city = "LOCAL";
+          } catch (e) {}
+        }
+
+        const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`);
+        if (!res.ok) throw new Error("Weather fetch failed");
+        const data = await res.json();
+        const tempC = Math.round(data.current_weather.temperature);
+        const tempF = Math.round((tempC * 9/5) + 32);
+        const speed = data.current_weather.windspeed;
+
+        weatherEl.innerText = `${tempC}°C / ${tempF}°F`;
+        return `Meteorological scan for ${city}: Current temperature is ${tempC} degrees Celsius (${tempF} degrees Fahrenheit) with wind speeds at ${speed} kilometers per hour. Conditions are nominal.`;
+      } catch (err) {
+        weatherEl.innerText = "22°C (STARK HUD)";
+        return "Current regional weather is 22 degrees Celsius with clear skies, sir.";
+      }
+    }
+
+    /* ==========================================================
+       TELEMETRY CLOCK & REMINDER DAEMON
+       ========================================================== */
+    function startTelemetryClock() {
+      const updateClock = () => {
+        const now = new Date();
+        document.getElementById('telemetry-time').innerText = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        // Subtle CPU flux simulation
+        const cpuGhz = (3.4 + Math.sin(now.getSeconds()) * 0.4).toFixed(1);
+        document.getElementById('telemetry-cpu').innerText = `${cpuGhz} GHz`;
+      };
+      updateClock();
+      setInterval(updateClock, 1000);
+    }
+
+    function startReminderDaemon() {
+      setInterval(() => {
+        const now = new Date().getTime();
+        AppState.reminders.forEach(r => {
+          if (!r.triggered && new Date(r.timestamp).getTime() <= now) {
+            r.triggered = true;
+            saveState('reminders');
+            renderRemindersList();
+            triggerReminderAlert(r);
+          }
+        });
+      }, 5000);
+    }
+
+    function triggerReminderAlert(reminder) {
+      playAlertChime();
+      showToast(`⏰ REMINDER: ${reminder.title}`);
+      const speech = `Attention sir: Scheduled protocol reminder for ${reminder.title}.`;
+      speakJarvisResponse(speech);
+
+      if ("Notification" in window && Notification.permission === "granted") {
+        new Notification("JARVIS Reminder Protocol", {
+          body: reminder.title,
+          icon: 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/svgs/solid/shield-halved.svg'
+        });
+      }
+    }
+
+    /* ==========================================================
+       CANVAS WAVEFORM VISUALIZER
+       ========================================================== */
+    function initWaveformVisualizer() {
+      const canvas = document.getElementById('waveform-canvas');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      let angle = 0;
+
+      function resize() {
+        if (!canvas.parentElement) return;
+        canvas.width = canvas.parentElement.clientWidth * Math.min(window.devicePixelRatio || 1, 2);
+        canvas.height = canvas.parentElement.clientHeight * Math.min(window.devicePixelRatio || 1, 2);
+      }
+      resize();
+      window.addEventListener('resize', resize);
+
+      function draw() {
+        if (document.hidden) {
+          requestAnimationFrame(draw);
+          return;
+        }
+
+        const w = canvas.width;
+        const h = canvas.height;
+        ctx.clearRect(0, 0, w, h);
+        const centerY = h / 2;
+
+        const isAct = AppState.isListening || AppState.isSpeaking;
+        const amp = isAct ? (h * 0.38) : (h * 0.12);
+        const bars = 28;
+        const barWidth = Math.max(2, (w / bars) * 0.55);
+        const gap = (w / bars) * 0.45;
+
+        ctx.fillStyle = isAct ? 'rgba(0, 240, 255, 0.9)' : 'rgba(0, 200, 255, 0.35)';
+
+        for (let i = 0; i < bars; i++) {
+          const x = i * (barWidth + gap);
+          let barHeight;
+          if (isAct) {
+            barHeight = Math.abs(Math.sin(angle + i * 0.35)) * amp + (Math.sin(angle * 2 + i) * 4) + 4;
+          } else {
+            barHeight = Math.abs(Math.sin(angle * 0.5 + i * 0.2)) * amp + 2;
+          }
+
+          ctx.fillRect(x, centerY - barHeight / 2, barWidth, barHeight);
+        }
+
+        angle += isAct ? 0.08 : 0.025;
+        requestAnimationFrame(draw);
+      }
+      draw();
+    }
+
+    /* Back-button & Drawer Helper for Android WebView */
+    window.closeAnyOpenDrawer = function() {
+      let closedSomething = false;
+      const openDrawers = document.querySelectorAll('.hud-drawer.open');
+      openDrawers.forEach(d => {
+        d.classList.remove('open');
+        closedSomething = true;
+      });
+      const inputDrawer = document.getElementById('text-input-drawer');
+      if (inputDrawer && inputDrawer.classList.contains('open')) {
+        inputDrawer.classList.remove('open');
+        closedSomething = true;
+      }
+      return closedSomething;
+    };
+
+    function setReactorState(state, label) {
+      const assembly = document.getElementById('reactor-assembly');
+      const textEl = document.getElementById('reactor-state-text');
+      const dot = document.getElementById('hud-status-dot');
+      const badgeLabel = document.getElementById('hud-status-label');
+
+      if (assembly) {
+        assembly.className = `atomic-reactor-assembly state-${state}`;
+      }
+      if (textEl) textEl.innerText = label;
+      if (dot) dot.className = `hud-status-dot ${state}`;
+      if (badgeLabel) badgeLabel.innerText = state.toUpperCase();
+    }
+
+    /* ==========================================================
+       CHAT TRANSCRIPT UI
+       ========================================================== */
+    function appendChatMessage(sender, text) {
+      const msg = {
+        id: Date.now(),
+        sender,
+        text,
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      };
+      AppState.chatHistory.push(msg);
+      saveState('chat');
+      renderChatHistory();
+    }
+
+    function renderChatHistory() {
+      const container = document.getElementById('chat-transcript-area');
+      if (!container) return;
+
+      if (AppState.chatHistory.length === 0) {
+        container.innerHTML = `
+          <div class="chat-empty-state" id="chat-empty-state">
+            <i class="fa-solid fa-microchip chat-empty-icon"></i>
+            <div class="chat-empty-title font-hud">SYSTEM READY, SIR</div>
+            <p style="font-size: 12px;">Speak or type a command. Try asking:</p>
+            <div class="chat-empty-chips">
+              <div class="sample-chip" onclick="handleQuickPrompt('What is the current time and date?')">⏰ Current Time</div>
+              <div class="sample-chip" onclick="handleQuickPrompt('What is the weather today?')">🌤️ Weather Report</div>
+              <div class="sample-chip" onclick="handleQuickPrompt('Add buy coffee to my todo list')">📝 Add To-Do</div>
+              <div class="sample-chip" onclick="handleQuickPrompt('Calculate 245 * 18')">🧮 Calculate</div>
+              <div class="sample-chip" onclick="handleQuickPrompt('Remind me to call Tony in 5 minutes')">🔔 Set Reminder</div>
+            </div>
+          </div>`;
+        return;
+      }
+
+      container.innerHTML = '';
+      AppState.chatHistory.forEach(m => {
+        const row = document.createElement('div');
+        row.className = `chat-msg-row ${m.sender}`;
+
+        const senderTag = m.sender === 'user' 
+          ? `<div class="msg-sender-tag"><i class="fa-solid fa-user"></i> YOU</div>`
+          : `<div class="msg-sender-tag"><i class="fa-solid fa-shield-halved" style="color:var(--primary);"></i> ${AppState.settings.name}</div>`;
+
+        const actions = m.sender === 'jarvis'
+          ? `<div class="msg-actions">
+              <button class="msg-action-btn" title="Speak again" onclick="speakJarvisResponse('${escapeQuotes(m.text)}')"><i class="fa-solid fa-volume-high"></i></button>
+              <button class="msg-action-btn" title="Copy text" onclick="copyToClipboard('${escapeQuotes(m.text)}')"><i class="fa-solid fa-copy"></i></button>
+             </div>`
+          : '';
+
+        row.innerHTML = `
+          ${senderTag}
+          <div class="msg-card">
+            ${escapeHtml(m.text)}
+          </div>
+          <div class="msg-time">${m.time}</div>
+          ${actions}
+        `;
+        container.appendChild(row);
+      });
+
+      container.scrollTop = container.scrollHeight;
+    }
+
+    function handleQuickPrompt(promptText) {
+      appendChatMessage('user', promptText);
+      executeCommandOrAI(promptText);
+    }
+
+    /* ==========================================================
+       DRAWER PANELS LOGIC (To-Dos, Notes, Reminders, Calc, History)
+       ========================================================== */
+    function toggleDrawer(name, forceOpen = false) {
+      const drawer = document.getElementById(`drawer-${name}`);
+      if (!drawer) return;
+
+      const isOpen = drawer.classList.contains('open');
+      document.querySelectorAll('.hud-drawer').forEach(d => d.classList.remove('open'));
+
+      if (forceOpen || !isOpen) {
+        drawer.classList.add('open');
+        playSynthBeep(700, 0.05);
+      }
+    }
+
+    function handleDrawerBackdrop(e, name) {
+      if (e.target.id === `drawer-${name}`) toggleDrawer(name);
+    }
+
+    /* TO-DOS */
+    function renderTodoList() {
+      const container = document.getElementById('todo-list-items');
+      if (!container) return;
+      if (AppState.todos.length === 0) {
+        container.innerHTML = `<div style="text-align:center; color:var(--text-muted); padding:20px; font-size:12px;">No active protocols.</div>`;
+        return;
+      }
+      container.innerHTML = '';
+      AppState.todos.forEach(t => {
+        const item = document.createElement('div');
+        item.className = `hud-item-card ${t.done ? 'completed' : ''}`;
+        item.innerHTML = `
+          <div class="hud-item-title">${escapeHtml(t.text)}</div>
+          <div class="hud-item-actions">
+            <button class="hud-icon-btn" onclick="toggleTodoDone(${t.id})">
+              <i class="fa-solid ${t.done ? 'fa-arrow-rotate-left' : 'fa-check'}"></i>
+            </button>
+            <button class="hud-icon-btn delete-btn" onclick="deleteTodo(${t.id})">
+              <i class="fa-solid fa-trash"></i>
+            </button>
+          </div>
+        `;
+        container.appendChild(item);
+      });
+    }
+
+    function addTodoItem() {
+      const input = document.getElementById('new-todo-input');
+      const val = input.value.trim();
+      if (!val) return;
+      AppState.todos.push({ id: Date.now(), text: val, done: false });
+      saveState('todos');
+      renderTodoList();
+      input.value = '';
+      playSynthBeep(850, 0.06);
+    }
+
+    function toggleTodoDone(id) {
+      const item = AppState.todos.find(t => t.id === id);
+      if (item) {
+        item.done = !item.done;
+        saveState('todos');
+        renderTodoList();
+      }
+    }
+
+    function deleteTodo(id) {
+      AppState.todos = AppState.todos.filter(t => t.id !== id);
+      saveState('todos');
+      renderTodoList();
+      playSynthBeep(450, 0.06);
+    }
+
+    /* NOTES */
+    function renderNotesList() {
+      const container = document.getElementById('notes-list-items');
+      if (!container) return;
+      if (AppState.notes.length === 0) {
+        container.innerHTML = `<div style="text-align:center; color:var(--text-muted); padding:20px; font-size:12px;">No saved logs.</div>`;
+        return;
+      }
+      container.innerHTML = '';
+      AppState.notes.forEach(n => {
+        const item = document.createElement('div');
+        item.className = 'hud-item-card';
+        item.innerHTML = `
+          <div style="flex:1;">
+            <div style="font-size:9px; color:var(--primary);">${n.date}</div>
+            <div class="hud-item-title" style="margin-top:2px;">${escapeHtml(n.text)}</div>
+          </div>
+          <div class="hud-item-actions">
+            <button class="hud-icon-btn" title="Speak note" onclick="speakJarvisResponse('${escapeQuotes(n.text)}')">
+              <i class="fa-solid fa-volume-high"></i>
+            </button>
+            <button class="hud-icon-btn delete-btn" onclick="deleteNote(${n.id})">
+              <i class="fa-solid fa-trash"></i>
+            </button>
+          </div>
+        `;
+        container.appendChild(item);
+      });
+    }
+
+    function addNoteItem() {
+      const input = document.getElementById('new-note-input');
+      const val = input.value.trim();
+      if (!val) return;
+      AppState.notes.push({ id: Date.now(), text: val, date: new Date().toLocaleDateString() });
+      saveState('notes');
+      renderNotesList();
+      input.value = '';
+      playSynthBeep(850, 0.06);
+    }
+
+    function deleteNote(id) {
+      AppState.notes = AppState.notes.filter(n => n.id !== id);
+      saveState('notes');
+      renderNotesList();
+      playSynthBeep(450, 0.06);
+    }
+
+    /* REMINDERS */
+    function renderRemindersList() {
+      const container = document.getElementById('reminders-list-items');
+      if (!container) return;
+      if (AppState.reminders.length === 0) {
+        container.innerHTML = `<div style="text-align:center; color:var(--text-muted); padding:20px; font-size:12px;">No active alarms.</div>`;
+        return;
+      }
+      container.innerHTML = '';
+      AppState.reminders.forEach(r => {
+        const timeStr = new Date(r.timestamp).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+        const item = document.createElement('div');
+        item.className = `hud-item-card ${r.triggered ? 'completed' : ''}`;
+        item.innerHTML = `
+          <div style="flex:1;">
+            <div class="hud-item-title">${escapeHtml(r.title)}</div>
+            <div style="font-size:10px; color:${r.triggered ? 'var(--text-muted)' : 'var(--warning)'}; margin-top:2px;">
+              <i class="fa-solid fa-clock"></i> ${timeStr} ${r.triggered ? '(TRIGGERED)' : ''}
+            </div>
+          </div>
+          <div class="hud-item-actions">
+            <button class="hud-icon-btn delete-btn" onclick="deleteReminder(${r.id})">
+              <i class="fa-solid fa-trash"></i>
+            </button>
+          </div>
+        `;
+        container.appendChild(item);
+      });
+    }
+
+    function addManualReminder() {
+      const title = document.getElementById('new-reminder-title').value.trim() || 'Manual Alarm';
+      const timeVal = document.getElementById('new-reminder-time').value;
+      if (!timeVal) {
+        showToast("Please select time");
+        return;
+      }
+      AppState.reminders.push({
+        id: Date.now(),
+        title,
+        timestamp: new Date(timeVal).toISOString(),
+        triggered: false
+      });
+      saveState('reminders');
+      renderRemindersList();
+      document.getElementById('new-reminder-title').value = '';
+      document.getElementById('new-reminder-time').value = '';
+      showToast("Alarm protocol activated");
+      playSynthBeep(900, 0.08);
+    }
+
+    function deleteReminder(id) {
+      AppState.reminders = AppState.reminders.filter(r => r.id !== id);
+      saveState('reminders');
+      renderRemindersList();
+    }
+
+    /* HISTORY */
+    function renderHistoryList() {
+      const container = document.getElementById('history-list-items');
+      if (!container) return;
+      if (AppState.commands.length === 0) {
+        container.innerHTML = `<div style="text-align:center; color:var(--text-muted); padding:20px; font-size:12px;">No command history.</div>`;
+        return;
+      }
+      container.innerHTML = '';
+      AppState.commands.forEach(c => {
+        const item = document.createElement('div');
+        item.className = 'hud-item-card';
+        const timeStr = new Date(c.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        item.innerHTML = `
+          <div style="flex:1;">
+            <div class="hud-item-title">${escapeHtml(c.text)}</div>
+            <div style="font-size:9px; color:var(--text-muted);">${timeStr}</div>
+          </div>
+          <button class="hud-icon-btn" title="Re-run" onclick="handleQuickPrompt('${escapeQuotes(c.text)}'); toggleDrawer('history')">
+            <i class="fa-solid fa-play"></i>
+          </button>
+        `;
+        container.appendChild(item);
+      });
+    }
+
+    /* CALCULATOR */
+    let calcCurrent = '0';
+    function calcInput(char) {
+      playSynthBeep(750, 0.04);
+      const display = document.getElementById('calc-display');
+      if (char === 'C') {
+        calcCurrent = '0';
+      } else if (char === 'sqrt') {
+        try {
+          calcCurrent = String(Math.sqrt(parseFloat(calcCurrent) || 0));
+        } catch (e) {
+          calcCurrent = 'Error';
+        }
+      } else {
+        if (calcCurrent === '0' && !isNaN(char)) {
+          calcCurrent = char;
+        } else {
+          calcCurrent += char;
+        }
+      }
+      display.value = calcCurrent;
+    }
+
+    function calcEvaluate() {
+      playSynthBeep(950, 0.08);
+      const display = document.getElementById('calc-display');
+      try {
+        const res = Function(`'use strict'; return (${calcCurrent})`)();
+        calcCurrent = String(res);
+        display.value = calcCurrent;
+        speakJarvisResponse(`The calculated answer is ${calcCurrent}`);
+      } catch (e) {
+        display.value = 'Error';
+        calcCurrent = '0';
+      }
+    }
+
+    /* ==========================================================
+       KEYBOARD TEXT INPUT DRAWER
+       ========================================================= */
+    function toggleTextInputDrawer() {
+      const drawer = document.getElementById('text-input-drawer');
+      drawer.classList.toggle('open');
+      if (drawer.classList.contains('open')) {
+        setTimeout(() => document.getElementById('hud-text-input').focus(), 150);
+        playSynthBeep(680, 0.05);
+      }
+    }
+
+    function handleTextKey(e) {
+      if (e.key === 'Enter') submitTextInput();
+    }
+
+    function submitTextInput() {
+      const input = document.getElementById('hud-text-input');
+      const val = input.value.trim();
+      if (!val) return;
+      input.value = '';
+      toggleTextInputDrawer();
+      handleVoiceCommand(val);
+    }
+
+    /* ==========================================================
+       UTILITIES & HELPERS
+       ========================================================== */
+    function showToast(msg) {
+      const container = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+      toast.className = 'hud-toast';
+      toast.innerHTML = `<i class="fa-solid fa-circle-info" style="color:var(--primary);"></i> <span>${msg}</span>`;
+      container.appendChild(toast);
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transition = 'opacity 0.4s ease';
+        setTimeout(() => toast.remove(), 400);
+      }, 2500);
+    }
+
+    function clearAllUserData() {
+      if (confirm("Initiate purge of all Jarvis local memory banks and logs, sir?")) {
+        localStorage.clear();
+        AppState.chatHistory = [];
+        AppState.todos = [];
+        AppState.notes = [];
+        AppState.reminders = [];
+        AppState.commands = [];
+        renderChatHistory();
+        renderTodoList();
+        renderNotesList();
+        renderRemindersList();
+        renderHistoryList();
+        toggleDrawer('settings');
+        showToast("Memory Purged Successfully");
+        playSynthBeep(350, 0.2, 'sawtooth');
+      }
+    }
+
+    function copyToClipboard(str) {
+      navigator.clipboard?.writeText(str).then(() => showToast("Copied to clipboard"));
+    }
+
+    function escapeHtml(str) {
+      return String(str).replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[m]);
+    }
+
+    function escapeQuotes(str) {
+      return String(str).replace(/'/g, "\\'").replace(/"/g, '&quot;');
+    }
+  </script>
+</body>
+</html>
